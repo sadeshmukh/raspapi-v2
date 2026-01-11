@@ -1,0 +1,38 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { getCollection, render, type CollectionEntry } from "astro:content";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const guides = await getCollection("guides");
+  return guides.map((guide) => ({
+    params: { slug: guide.id },
+    props: { guide },
+  }));
+}
+
+interface Props {
+  guide: CollectionEntry<"guides">;
+}
+
+const { guide } = Astro.props;
+
+if (!guide) {
+  return Astro.redirect("/guides");
+}
+
+const { Content } = await render(guide);
+---
+
+<DocsLayout title={guide.data.title} description={guide.data.description}>
+  <div class="prose">
+    <h1>{guide.data.title}</h1>
+    {
+      guide.data.description && (
+        <p class="description">{guide.data.description}</p>
+      )
+    }
+    <Content />
+  </div>
+</DocsLayout>

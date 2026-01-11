@@ -1,0 +1,75 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { getCollection } from "astro:content";
+
+export const prerender = true;
+
+const guides = await getCollection("guides");
+
+const grouped = guides.reduce(
+  (acc, guide) => {
+    const parts = guide.id.split("/");
+    const category = parts.length > 1 ? parts[0] : "general";
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(guide);
+    return acc;
+  },
+  {} as Record<string, typeof guides>
+);
+
+const categoryOrder = ["general", "building", "hosting"];
+const sortedCategories = Object.entries(grouped).sort(([a], [b]) => {
+  const aIndex = categoryOrder.indexOf(a);
+  const bIndex = categoryOrder.indexOf(b);
+  const aOrder = aIndex === -1 ? 999 : aIndex;
+  const bOrder = bIndex === -1 ? 999 : bIndex;
+  return aOrder - bOrder;
+});
+
+for (const [, items] of sortedCategories) {
+  items.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0));
+}
+
+function formatCategory(cat: string): string {
+  return cat
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+---
+
+<DocsLayout title="Guides">
+  <div class="prose">
+    <h1>Guides</h1>
+    <p class="description">
+      Everything you need to build and deploy your API for RaspAPI.
+    </p>
+
+    <div class="space-y-10 mt-10">
+      {
+        sortedCategories.map(([category, items]) => (
+          <section>
+            {category !== "general" && (
+              <h2 class="mt-0!">{formatCategory(category)}</h2>
+            )}
+            <div class="grid gap-3">
+              {items.map((guide) => (
+                <a
+                  href={`/guides/${guide.id}`}
+                  class="block p-4 border border-[#1a1a1a] rounded-lg hover:border-[#262626] hover:bg-[#0f0f0f] transition-colors no-underline group"
+                >
+                  <h3 class="mt-0! mb-1! text-base group-hover:text-[#c41e3a] transition-colors">
+                    {guide.data.title}
+                  </h3>
+                  {guide.data.description && (
+                    <p class="mb-0! text-sm">{guide.data.description}</p>
+                  )}
+                </a>
+              ))}
+            </div>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</DocsLayout>
