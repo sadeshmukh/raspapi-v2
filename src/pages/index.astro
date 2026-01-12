@@ -1,5 +1,24 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+const pastProjects = [
+  {
+    name: "Cachet",
+    description:
+      "A *really fast* proxy to quickly grab Hack Club Slack profile pictures without Slack API hassle.",
+    link: "https://cachet.dunkirk.sh",
+  },
+  {
+    name: "Battleships API",
+    description: "Play an entire game of Battleships over an API.",
+    link: "https://github.com/pbhak/battleships-api",
+  },
+  {
+    name: "ytdlp Web API",
+    description: "Download Youtube videos with one call.",
+    link: "https://github.com/duykhanh09103/ytdlp-web-api",
+  },
+];
 ---
 
 <Layout>
@@ -40,7 +59,7 @@ import Layout from "../layouts/Layout.astro";
       </a>
     </p>
 
-    <div class="flex gap-4 mb-6">
+    <div class="flex gap-4 mb-10">
       <button
         type="button"
         disabled
@@ -54,6 +73,31 @@ import Layout from "../layouts/Layout.astro";
       >
         Guides
       </a>
+    </div>
+
+    <div class="text-center max-w-md">
+      <p class="text-xs text-[#525252] uppercase tracking-wider mb-3">
+        Past projects
+      </p>
+      <div class="space-y-2">
+        {
+          pastProjects.map((project) => (
+            <p class="text-sm">
+              <>
+                <a
+                  href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[#a3a3a3] hover:text-white transition-colors"
+                >
+                  {project.name}:
+                </a>
+                <span class="text-[#525252]">{project.description}</span>
+              </>
+            </p>
+          ))
+        }
+      </div>
     </div>
 
     <!-- <p class="text-xs text-[#404040]">Raspberry Pi Zero 2W</p> -->
