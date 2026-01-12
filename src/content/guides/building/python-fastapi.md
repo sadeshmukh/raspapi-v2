@@ -6,6 +6,8 @@ order: 1
 
 Let's build a simple API with **FastAPI** with Python! Before we get started, make sure you have `uv` [installed](https://docs.astral.sh/uv/getting-started/installation/). This lets us use **virtual environments**, which keeps each project in its own isolated space.
 
+FastAPI automatically generates documentation for your API at `/docs`, so that's one less thing to worry about!
+
 To create a new project, create a new directory and navigate into it. Then, run `uv init` to set up a new uv project:
 
 ```bash
