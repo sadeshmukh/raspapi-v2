@@ -118,15 +118,13 @@ Where main is the executable name, and you are compiling main.c and linking mong
 If you head over to http://localhost:8000, you should see that you have your basic setup done!
 What you effectively now have set up is a single route.
 
-## Creating Different Endpoint Types
+## Implementing Different Types of Requests
 Right now the simple server you have set up only checks for a single route:
 
 ```c
 /api/hello
 ```
 If the request matches that path, the server returns a JSON response, otherwise it serves static files.
-
-## Implementing Different Types of Requests
 
 However, real APIs usually have multiple endpoints and different request types like `GET` and `POST`.
 
