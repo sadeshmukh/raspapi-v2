@@ -61,11 +61,11 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
         struct mg_http_message *hm = (struct mg_http_message *) ev_data;
 
         if (mg_match(hm->uri, mg_str("/api/hello"), NULL)) {
-            mg_http_reply(c, 200, "", "{%m:%d}\n", MG_ESC("status"), 1);
+            mg_http_reply(c, 200, "", "{\"status\":\"ok\"}\n");
         } else {
             struct mg_http_serve_opts opts = 
             {
-            .root_dir = ".",
+            .root_dir = "web_root",  // Serve only files from the dedicated static directory
             .fs = &mg_fs_posix
             };
             mg_http_serve_dir(c, hm, &opts);  // Serve static files
@@ -172,7 +172,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
                     (int) hm->body.len, hm->body.buf);
 
     } else {
-      struct mg_http_serve_opts opts = {.root_dir = ".", .fs = &mg_fs_posix};
+      struct mg_http_serve_opts opts = {.root_dir = "public", .fs = &mg_fs_posix};
       mg_http_serve_dir(c, hm, &opts);
     }
   }
