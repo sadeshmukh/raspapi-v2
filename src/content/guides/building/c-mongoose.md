@@ -28,7 +28,7 @@ int main() {
     mg_mgr_init(&mgr); // Initialize the event manager
     
     // Setup HTTP listener
-    mg_http_listen(&mgr, "http://0.0.0.0:8000", ev_handler, NULL);
+    mg_http_listen(&mgr, "http://0.0.0.0:8000", fn, NULL);
 
     while (1) {
         mg_mgr_poll(&mgr, 1000);
@@ -49,9 +49,9 @@ Mongoose has two basic data structures that you need to know:
 
 Now, let's make an event handler function, the above code shouldn't have worked because in this line:
 ```c
-mg_http_listen(&mgr, "http://0.0.0.0:8000", ev_handler, NULL);
+mg_http_listen(&mgr, "http://0.0.0.0:8000", fn, NULL);
 ```
-We pass `ev_handler`, but haven’t defined it yet.
+We pass `fn`, but this is just a placeholder, as we haven’t defined the event handler function yet.
 
 The most basic way to make an event handler function that handles requests would be something like this:
 
