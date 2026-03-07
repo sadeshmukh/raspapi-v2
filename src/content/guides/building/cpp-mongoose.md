@@ -65,7 +65,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
         } else {
             struct mg_http_serve_opts opts = 
             {
-            .root_dir = ".",
+            .root_dir = "web_root",  // Serve only files from the dedicated static directory
             .fs = &mg_fs_posix
             };
             mg_http_serve_dir(c, hm, &opts);  // Serve static files
