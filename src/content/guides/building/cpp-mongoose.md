@@ -188,7 +188,7 @@ If you want to learn more about types of API requests, look into [this blog post
 If you want to take a look into the Mongoose documentation, take a look [here](https://mongoose.ws/documentation/) (they have amazing documentation).
 
 ## CORS Implementation
-CORS (cross-origin-resource-sharing) is a security feature in web browsers that blocks requests to your API from domains of your choice, if you want to let any domain on the internet access your API, add CORS headers to your HTTP responses in the `ev_handler` method:
+CORS (cross-origin-resource-sharing) is a security feature in web browsers that, by default, blocks cross-origin requests from web pages; by adding CORS headers to your HTTP responses in the `ev_handler` method, you tell the browser which origins are allowed to access your API (for example, you can allow any origin on the internet):
 
 ```c
 if (ev == MG_EV_HTTP_MSG) {
