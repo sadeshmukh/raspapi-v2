@@ -101,7 +101,7 @@ For simplicity, this guide does not cover TLS setup. If you already know how to 
 
 Now, you've set up basic code that listens on port 8000, compile it using a command similar to this for Mac or Linux:
 
-```c
+```bash
 gcc -o main main.c mongoose.c
 ./main
 ```
