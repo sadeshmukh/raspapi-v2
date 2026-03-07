@@ -172,7 +172,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
                     (int) hm->body.len, hm->body.buf);
 
     } else {
-      struct mg_http_serve_opts opts = {.root_dir = ".", .fs = &mg_fs_posix};
+      struct mg_http_serve_opts opts = {.root_dir = "public", .fs = &mg_fs_posix};
       mg_http_serve_dir(c, hm, &opts);
     }
   }
