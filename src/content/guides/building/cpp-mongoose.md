@@ -148,25 +148,27 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
     if (mg_match(hm->uri, mg_str("/api/hello"), NULL) &&
         mg_match(hm->method, mg_str("GET"), NULL)) {
 
-      mg_http_reply(c, 200, "", "{\"message\":\"hello\"}");
+      mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{\"message\":\"hello\"}");
 
     // GET /api/time
     } else if (mg_match(hm->uri, mg_str("/api/time"), NULL) &&
                mg_match(hm->method, mg_str("GET"), NULL)) {
 
-      mg_http_reply(c, 200, "", "{\"time\": %lu}", (unsigned long) time(NULL));
+      mg_http_reply(c, 200, "Content-Type: application/json\r\n",
+                    "{\"time\": %lu}", (unsigned long) time(NULL));
 
     // GET /api/status
     } else if (mg_match(hm->uri, mg_str("/api/status"), NULL) &&
                mg_match(hm->method, mg_str("GET"), NULL)) {
 
-      mg_http_reply(c, 200, "", "{\"status\":\"ok\"}");
+      mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{\"status\":\"ok\"}");
 
     // POST /api/echo
     } else if (mg_match(hm->uri, mg_str("/api/echo"), NULL) &&
                mg_match(hm->method, mg_str("POST"), NULL)) {
 
-      mg_http_reply(c, 200, "", "{\"you_sent\":\"%.*s\"}",
+      mg_http_reply(c, 200, "Content-Type: application/json\r\n",
+                    "{\"you_sent\":\"%.*s\"}",
                     (int) hm->body.len, hm->body.buf);
 
     } else {
