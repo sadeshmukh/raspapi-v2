@@ -1,18 +1,19 @@
 ---
 title: Making an API in C (with Mongoose)
-description: Build a simple API using the mongoose library in C
+description: Build a simple API using the Mongoose library in C
 order: 2
+author: SamhithPola2025
 ---
 
 This guide is aimed towards people who want to build their **own API in C**!
-Before we start, it would be useful to have the [Mongoose documentation](https://mongoose.ws/documentation/) open, I find that it's pretty understandable, even for beginners.
+Before we start, it would be useful to have the [Mongoose documentation](https://mongoose.ws/documentation/) open. I find that it's pretty understandable, even for beginners.
 
 This guide also helps you understand what happens behind the scenes, especially if you’re used to libraries handling most tasks for you.
 
 Please note that unlike Python or some other languages, C is a compiled language, not interpreted.
 This means that you will have to re-compile your code every time you want to test it.
 
-If you want a guide on the best setup for debugging and testing code in C, please refer to [this tutorial](https://www.tutorialspoint.com/cprogramming/c_environment_setup.htm). It explains in detail how to set up your C environment and using it with an IDE. I recommend using GCC if you are on Linux or MacOS. If you are on windows, MSVC via Visual Studio is the best option. Check out [this guide](https://code.visualstudio.com/docs/cpp/config-msvc#_prerequisites) for setup and compiling your project.
+If you want a guide on the best setup for debugging and testing code in C, please refer to [this tutorial](https://www.tutorialspoint.com/cprogramming/c_environment_setup.htm). It explains in detail how to set up your C environment and use it with an IDE. I recommend using GCC if you are on Linux or MacOS. If you are on Windows, MSVC via Visual Studio is the best option. Check out [this guide](https://code.visualstudio.com/docs/cpp/config-msvc#_prerequisites) for setup and compiling your project.
 
 To start, please copy [mongoose.c](https://raw.githubusercontent.com/cesanta/mongoose/master/mongoose.c) and the [mongoose.h](https://raw.githubusercontent.com/cesanta/mongoose/master/mongoose.h) header file to your source tree.
 
@@ -20,16 +21,16 @@ Now, make a C file called `main.c` and open it up, let's get some code in here!
 
 ```c
 #include "mongoose.h" // Including the dependency
-#include <time.h> // For time() so you don't have issues compiling, we can use this later.
+#include <time.h> // For time(), we can use this later.
 
 int main() {
-    struct mg_mgr mgr; // This is the mongoose event manager, it holds all connections
+    struct mg_mgr mgr; // Mongoose event manager, holds all connections
     mg_mgr_init(&mgr); // Initialize the event manager
     
-    mg_http_listen(&mgr, "http://0.0.0.0:8000", fn, NULL);   // Setup HTTP listener
-    mg_http_listen(&mgr, "https://0.0.0.0:8443", fn, NULL);  // Setup HTTPS listener
+    // Setup HTTP listener
+    mg_http_listen(&mgr, "http://0.0.0.0:8000", ev_handler, NULL);
 
-    while (1) { // Same thing as while (true) in other languages, just saves us an include line
+    while (1) {
         mg_mgr_poll(&mgr, 1000);
     }
 
@@ -43,14 +44,14 @@ All this code is doing is including the dependency for mongoose you added earlie
 
 Mongoose has two basic data structures that you need to know:
 
-- ``struct mg_mgr`` - An event manager that holds all active connections
-- ``struct mg_connection`` - A single connection descriptor
+- `struct mg_mgr` - An event manager that holds all active connections
+- `struct mg_connection` - A single connection descriptor
 
 Now, let's make an event handler function, the above code shouldn't have worked because in this line:
 ```c
-mg_http_listen(&mgr, "http://0.0.0.0:8000", fn, NULL);   // Setup HTTP listener
+mg_http_listen(&mgr, "http://0.0.0.0:8000", ev_handler, NULL);
 ```
-We put in "fn" as a parameter instead of our event handler function.
+We pass `ev_handler`, but haven’t defined it yet.
 
 The most basic way to make an event handler function that handles requests would be something like this:
 
@@ -62,15 +63,24 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
         if (mg_match(hm->uri, mg_str("/api/hello"), NULL)) {
             mg_http_reply(c, 200, "", "{%m:%d}\n", MG_ESC("status"), 1);
         } else {
-            struct mg_http_serve_opts opts = {.root_dir = ".", .fs = &mg_fs_posix};
-            mg_http_serve_dir(c, hm, &opts);  // For all other URLs, Serve static files
+            struct mg_http_serve_opts opts = 
+            {
+            .root_dir = ".",
+            .fs = &mg_fs_posix
+            };
+            mg_http_serve_dir(c, hm, &opts);  // Serve static files
         }
     }
 }
+
 ```
 
-- `struct mg_http_message *hm = (struct mg_http_message *) ev_data;` — `*` indicates a pointer, storing the memory address of the struct, not the struct itself.  
+Hint: If it isn’t compiling, you may have defined your function after `main`; either move it above `main` or add a forward declaration.
+
+- `struct mg_http_message *hm = (struct mg_http_message *) ev_data;` - `*` indicates a pointer, storing the memory address of the struct, not the struct itself.  
 - `hm` just stands for “HTTP message.”
+
+Syntax Tips: The -> operator is used to access members of a structure or union through a pointer instead of the usual ".". 
 
 > Note that in the line:
 > ```c
@@ -83,7 +93,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
 Now that you have that function, go ahead and change that line of code from earlier to include the function name:
 
 ```c
-mg_http_listen(&mgr, "http://0.0.0.0:8000", ev_handler, NULL);   // Setup HTTP listener
+mg_http_listen(&mgr, "http://0.0.0.0:8000", ev_handler, NULL);
 ```
 
 Note that HTTPS will not work unless TLS certificates are configured.  
@@ -99,7 +109,7 @@ gcc -o main main.c mongoose.c
 Windows (MSVC `cl`) example:
 
 ```bat
-cl /W4 /EHsc main.c mongoose.c /link /OUT:main.exe
+cl /W4 main.c mongoose.c /link /OUT:main.exe
 main.exe
 ```
 
@@ -108,7 +118,7 @@ Where main is the executable name, and you are compiling main.c and linking mong
 If you head over to http://localhost:8000, you should see that you have your basic setup done!
 What you effectively now have set up is a single route.
 
-## Creating Different Endpoint Types:
+## Creating Different Endpoint Types
 Right now the simple server you have set up only checks for a single route:
 
 ```c
@@ -116,7 +126,7 @@ Right now the simple server you have set up only checks for a single route:
 ```
 If the request matches that path, the server returns a JSON response, otherwise it serves static files.
 
-## Implementing different types of requests
+## Implementing Different Types of Requests
 
 However, real APIs usually have multiple endpoints and different request types like `GET` and `POST`.
 
@@ -181,27 +191,30 @@ CORS (cross-origin-resource-sharing) is a security feature in web browsers that 
 ```c
 if (ev == MG_EV_HTTP_MSG) {
     struct mg_http_message *hm = (struct mg_http_message *) ev_data;
-    const char *cors_headers = "Access-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type\r\n";
-    
+    static const char *CORS_HEADERS =
+        "Access-Control-Allow-Origin: *\r\n"
+        "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+        "Access-Control-Allow-Headers: Content-Type\r\n";
+
     // Handle OPTIONS request for CORS preflight
     if (mg_match(hm->method, mg_str("OPTIONS"), NULL)) {
-        mg_http_reply(c, 200, cors_headers, "");
+        mg_http_reply(c, 200, CORS_HEADERS, "");
         return;
     }
 
     // Include CORS headers in all your responses
     if (mg_match(hm->uri, mg_str("/api/hello"), NULL) &&
         mg_match(hm->method, mg_str("GET"), NULL)) {
-        mg_http_reply(c, 200, cors_headers, "{\"message\":\"hello\"}");
+        mg_http_reply(c, 200, CORS_HEADERS, "{\"message\":\"hello\"}");
     } else {
-        // For other routes, also add cors_headers as the third parameter
+        // For other routes, also add CORS_HEADERS as the third parameter
     }
 }
 ```
 
-The `cors_headers` string is passed as the third parameter to `mg_http_reply()`, ensuring proper HTTP header formatting. The second part handles `OPTIONS` requests, which browsers use to check the CORS policy before making actual requests.
+The `CORS_HEADERS` string is passed as the third parameter to `mg_http_reply()`, ensuring proper HTTP header formatting. The second part handles `OPTIONS` requests, which browsers use to check the CORS policy before making actual requests.
 
-Thats it! I hope that with the knowledge you gained from this guide, you figured out how to at least get started.
+That's it! I hope that with the knowledge you gained from this guide, you figured out how to at least get started.
 Next, you should come up with a creative idea (doesn't have to be very complex), and figure out how to integrate the [requirements](https://raspapi.halceon.dev/guides/about) into your project!
 
 If you have any questions, you can message **Samhith (me)** on Slack, and I'd be happy to help with a lot of things!
