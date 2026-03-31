@@ -155,6 +155,8 @@ app.post("/reminders", async (c) => {
 
 If you know SQL, the de facto language used to query databases, you'll understand what the database methods above do. If you don't, it should be quite intuitive as it's designed to model English! We can see that the first endpoint selects, or gets, a list of reminders from the database and returns them, and the second endpoint inserts our new reminder into the database.
 
+> If you want to learn more about SQL, you can check out [this W3Schools tutorial series](https://www.w3schools.com/sql/)!
+
 ## Database schema
 
 Now, if you navigate to `http://localhost:8788/reminders`, you'll see... an `Internal Server Error`! This is because we didn't tell the database what types to expect beforehand, so it has no idea what a "reminder" is. We must first define a _schema_, which informs the database of the _tables_, or types, that will be stored.
