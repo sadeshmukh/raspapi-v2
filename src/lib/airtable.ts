@@ -110,15 +110,16 @@ export async function getProjectById(
 	const res = await fetch(`${BASE()}/projects/${id}`, { headers: HEADERS() });
 	if (!res.ok) return null;
 	const r = await res.json();
+	console.log(r);
 	return {
 		id: r.id,
-		name: r.fields.name,
+		name: r.fields.name ?? "",
 		user_slack_id: r.fields.user_slack_id[0],
 		project_url: r.fields.project_url ?? undefined,
 		repo_url: r.fields.repo_url ?? undefined,
 		description: r.fields.description ?? "",
 		hackatime_project: r.fields.hackatime_project ?? undefined,
-		has_pending_submission: r.fields.has_pending_submission,
+		has_pending_submission: r.fields.has_pending_submission ?? false,
 	};
 }
 
@@ -138,13 +139,13 @@ export async function getAllProjectsBySlackId(
 		for (const r of data.records ?? []) {
 			records.push({
 				id: r.id,
-				name: r.fields.name,
+				name: r.fields.name ?? "",
 				user_slack_id: r.fields.user_slack_id[0],
 				project_url: r.fields.project_url ?? undefined,
 				repo_url: r.fields.repo_url ?? undefined,
 				description: r.fields.description ?? "",
 				hackatime_project: r.fields.hackatime_project ?? undefined,
-				has_pending_submission: r.fields.has_pending_submission,
+				has_pending_submission: r.fields.has_pending_submission ?? false,
 			});
 		}
 		offset = data.offset;
@@ -170,10 +171,10 @@ export async function createProject(
 	if (!r) return null;
 	return {
 		id: r.id,
-		name: r.fields.name,
+		name: r.fields.name ?? "",
 		user_slack_id: r.fields.user_slack_id[0],
 		description: r.fields.description ?? "",
-		has_pending_submission: r.fields.has_pending_submission,
+		has_pending_submission: r.fields.has_pending_submission ?? false,
 	};
 }
 
@@ -206,12 +207,12 @@ export async function updateProject(
 	if (!r) return null;
 	return {
 		id: r.id,
-		name: r.fields.name,
+		name: r.fields.name ?? "",
 		user_slack_id: r.fields.user_slack_id[0],
 		project_url: r.fields.project_url ?? undefined,
 		repo_url: r.fields.repo_url ?? undefined,
 		description: r.fields.description ?? "",
 		hackatime_project: r.fields.hackatime_project ?? undefined,
-		has_pending_submission: r.fields.has_pending_submission,
+		has_pending_submission: r.fields.has_pending_submission ?? false,
 	};
 }
