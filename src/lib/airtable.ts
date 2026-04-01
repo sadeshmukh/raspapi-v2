@@ -11,6 +11,17 @@ export interface UserRecord {
 	hackatime_token?: string;
 }
 
+export interface ProjectRecord {
+	id: string;
+	name: string;
+	user_slack_id: string;
+	project_url?: string;
+	repo_url?: string;
+	description: string;
+	hackatime_project?: string;
+	has_pending_submission: boolean;
+}
+
 export async function upsertUser(slack_id: string): Promise<UserRecord | null> {
 	const filter = encodeURIComponent(`{slack_id}="${slack_id}"`);
 	const findRes = await fetch(
@@ -91,4 +102,85 @@ export async function getAllUsers(): Promise<UserRecord[]> {
 	} while (offset);
 
 	return records;
+}
+
+export async function getProjectById(
+	id: string,
+): Promise<ProjectRecord | null> {
+	const res = await fetch(`${BASE()}/users/${id}`, { headers: HEADERS() });
+	if (!res.ok) return null;
+	const r = await res.json();
+	return {
+		id: r.id,
+		name: r.fields.name,
+		user_slack_id: r.fields.user_slack_id[0],
+		project_url: r.fields.project_url ?? undefined,
+		repo_url: r.fields.repo_url ?? undefined,
+		description: r.fields.description ?? "",
+		hackatime_project: r.fields.hackatime_project ?? undefined,
+		has_pending_submission: r.fields.has_pending_submission,
+	};
+}
+
+export async function createProject(
+	user_id: string,
+	name: string,
+): Promise<ProjectRecord | null> {
+	const res = await fetch(`${BASE()}/projects`, {
+		method: "POST",
+		headers: HEADERS(),
+		body: JSON.stringify({
+			records: [{ fields: { name, user: [user_id] } }],
+		}),
+	});
+	if (!res.ok) return null;
+	const created = await res.json();
+	const r = created.records?.[0];
+	if (!r) return null;
+	return {
+		id: r.id,
+		name: r.fields.name,
+		user_slack_id: r.fields.user_slack_id[0],
+		description: r.fields.description ?? "",
+		has_pending_submission: r.fields.has_pending_submission,
+	};
+}
+
+export async function updateProject(
+	id: string,
+	data: {
+		name?: string;
+		project_url?: string | null;
+		repo_url?: string | null;
+		description?: string;
+		hackatime_project?: string | null;
+	},
+): Promise<ProjectRecord | null> {
+	const fields: Record<string, unknown> = {
+		name: data.name,
+		project_url: data.project_url,
+		repo_url: data.repo_url,
+		description: data.description,
+		hackatime_project: data.hackatime_project,
+	};
+
+	const res = await fetch(`${BASE()}/projects`, {
+		method: "PATCH",
+		headers: HEADERS(),
+		body: JSON.stringify({ records: [{ id, fields }] }),
+	});
+	if (!res.ok) return null;
+	const updated = await res.json();
+	const r = updated.records?.[0];
+	if (!r) return null;
+	return {
+		id: r.id,
+		name: r.fields.name,
+		user_slack_id: r.fields.user_slack_id[0],
+		project_url: r.fields.project_url ?? undefined,
+		repo_url: r.fields.repo_url ?? undefined,
+		description: r.fields.description ?? "",
+		hackatime_project: r.fields.hackatime_project ?? undefined,
+		has_pending_submission: r.fields.has_pending_submission,
+	};
 }
