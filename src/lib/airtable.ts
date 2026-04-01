@@ -122,6 +122,37 @@ export async function getProjectById(
 	};
 }
 
+export async function getAllProjectsBySlackId(
+	slack_id: string,
+): Promise<ProjectRecord[]> {
+	const records: ProjectRecord[] = [];
+	const filter = encodeURIComponent(`{user_slack_id}="${slack_id}"`);
+	let offset: string | undefined;
+
+	do {
+		const url = new URL(`${BASE()}/projects?filterByFormula=${filter}`);
+		if (offset) url.searchParams.set("offset", offset);
+		const res = await fetch(url.toString(), { headers: HEADERS() });
+		if (!res.ok) break;
+		const data = await res.json();
+		for (const r of data.records ?? []) {
+			records.push({
+				id: r.id,
+				name: r.fields.name,
+				user_slack_id: r.fields.user_slack_id[0],
+				project_url: r.fields.project_url ?? undefined,
+				repo_url: r.fields.repo_url ?? undefined,
+				description: r.fields.description ?? "",
+				hackatime_project: r.fields.hackatime_project ?? undefined,
+				has_pending_submission: r.fields.has_pending_submission,
+			});
+		}
+		offset = data.offset;
+	} while (offset);
+
+	return records;
+}
+
 export async function createProject(
 	user_id: string,
 	name: string,
