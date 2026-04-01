@@ -23,7 +23,6 @@ export const PATCH: APIRoute = async ({ request, cookies, params }) => {
 	}
 
 	const project = await getProjectById(id);
-	console.log(project);
 	if (!project) {
 		return Response.json({ error: "Project not found" }, { status: 404 });
 	}

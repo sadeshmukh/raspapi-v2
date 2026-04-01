@@ -107,7 +107,7 @@ export async function getAllUsers(): Promise<UserRecord[]> {
 export async function getProjectById(
 	id: string,
 ): Promise<ProjectRecord | null> {
-	const res = await fetch(`${BASE()}/users/${id}`, { headers: HEADERS() });
+	const res = await fetch(`${BASE()}/projects/${id}`, { headers: HEADERS() });
 	if (!res.ok) return null;
 	const r = await res.json();
 	return {
