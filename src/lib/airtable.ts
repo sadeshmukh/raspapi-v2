@@ -1,3 +1,5 @@
+import { uploadToCDN } from "./cdn";
+
 const BASE = () =>
 	`https://api.airtable.com/v0/${import.meta.env.AIRTABLE_BASE_ID}`;
 const HEADERS = () => ({
@@ -17,6 +19,7 @@ export interface ProjectRecord {
 	user_slack_id: string;
 	project_url?: string;
 	repo_url?: string;
+	image_url?: string;
 	description: string;
 	hackatime_project?: string;
 	has_pending_submission: boolean;
@@ -117,6 +120,7 @@ export async function getProjectById(
 		user_slack_id: r.fields.user_slack_id[0],
 		project_url: r.fields.project_url ?? undefined,
 		repo_url: r.fields.repo_url ?? undefined,
+		image_url: r.fields.image?.[0].url ?? undefined,
 		description: r.fields.description ?? "",
 		hackatime_project: r.fields.hackatime_project ?? undefined,
 		has_pending_submission: r.fields.has_pending_submission ?? false,
@@ -215,4 +219,15 @@ export async function updateProject(
 		hackatime_project: r.fields.hackatime_project ?? undefined,
 		has_pending_submission: r.fields.has_pending_submission ?? false,
 	};
+}
+
+export async function updateProjectImage(id: string, image: Blob) {
+	const url = await uploadToCDN(image);
+
+	const res = await fetch(`${BASE()}/projects`, {
+		method: "PATCH",
+		headers: HEADERS(),
+		body: JSON.stringify({ records: [{ id, fields: { image: [{ url }] } }] }),
+	});
+	return res.ok;
 }
