@@ -113,7 +113,6 @@ export async function getProjectById(
 	const res = await fetch(`${BASE()}/projects/${id}`, { headers: HEADERS() });
 	if (!res.ok) return null;
 	const r = await res.json();
-	console.log(r);
 	return {
 		id: r.id,
 		name: r.fields.name ?? "",
