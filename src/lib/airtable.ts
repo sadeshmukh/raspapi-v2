@@ -222,6 +222,7 @@ export async function updateProject(
 
 export async function updateProjectImage(id: string, image: Blob) {
 	const url = await uploadToCDN(image);
+	if (!url) return false;
 
 	const res = await fetch(`${BASE()}/projects`, {
 		method: "PATCH",
