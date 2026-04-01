@@ -18,6 +18,12 @@ export const GET: APIRoute = async ({ cookies, params }) => {
 	if (!project) {
 		return Response.json({ error: "Project not found" }, { status: 404 });
 	}
+	if (project.user_slack_id !== session.slack_id) {
+		return Response.json(
+			{ error: "You cannot perform this operation" },
+			{ status: 403 },
+		);
+	}
 	return Response.json(project);
 };
 
