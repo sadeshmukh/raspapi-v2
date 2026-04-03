@@ -21,7 +21,10 @@ export const GET: APIRoute = async ({ cookies, url }) => {
 		return Response.json({ error: "Forbidden" }, { status: 403 });
 	}
 	if (!record.hackatime_project) {
-		return Response.json({ error: "No hackatime project set" }, { status: 400 });
+		return Response.json(
+			{ error: "No hackatime project set" },
+			{ status: 400 },
+		);
 	}
 
 	const project = record.hackatime_project;
