@@ -1,6 +1,11 @@
 import type { APIRoute } from "astro";
+import { z } from "zod";
 import { getProjectById, updateProjectHoursCache } from "../../../lib/airtable";
 import { getSession } from "../../../lib/session";
+
+const QuerySchema = z.object({
+	id: z.string().min(1),
+});
 
 export const GET: APIRoute = async ({ cookies, url }) => {
 	const session = await getSession(cookies, import.meta.env.SESSION_SECRET);
@@ -8,10 +13,11 @@ export const GET: APIRoute = async ({ cookies, url }) => {
 		return Response.json({ error: "Not logged in" }, { status: 401 });
 	}
 
-	const recordId = url.searchParams.get("id");
-	if (!recordId) {
+	const parsed = QuerySchema.safeParse(Object.fromEntries(url.searchParams));
+	if (!parsed.success) {
 		return Response.json({ error: "Missing id" }, { status: 400 });
 	}
+	const { id: recordId } = parsed.data;
 
 	const record = await getProjectById(recordId);
 	if (!record) {

@@ -594,14 +594,13 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
 
   <script>
     async function loadHackatimeTime(card: HTMLElement) {
-      const project = card.dataset.hackatimeProject;
-      if (!project) return;
+      const id = card.dataset.id;
+      if (!id) return;
       const timeEl = card.querySelector<HTMLElement>(".hackatime-time");
       if (!timeEl) return;
-      const id = card.dataset.id ?? "";
       try {
         const res = await fetch(
-          `/api/hackatime/project-time?project=${encodeURIComponent(project)}&id=${encodeURIComponent(id)}`,
+          `/api/hackatime/project-time?id=${encodeURIComponent(id)}`,
         );
         if (res.status === 403) {
           timeEl.textContent = "stats private — ask in #raspapi";
