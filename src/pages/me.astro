@@ -86,6 +86,16 @@ try {
       </div>
     </header>
 
+    {userRecord?.row_number && (
+      <section class="referral">
+        <span class="referral-label">REFERRAL</span>
+        <p class="referral-link" id="referral-link">
+          {import.meta.env.PUBLIC_BASE_URL}/auth/login?ref={userRecord.row_number}
+        </p>
+        <button class="referral-copy" id="referral-copy-btn">copy link</button>
+      </section>
+    )}
+
     <section class="shop">
       <span class="shop-label">SHOP</span>
 
@@ -190,6 +200,44 @@ try {
     .hackatime-status {
       font-size: 0.75rem;
       color: #525252;
+    }
+
+    .referral {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .referral-label {
+      font-family: "Syne", sans-serif;
+      font-weight: 800;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      color: #c41e3a;
+    }
+
+    .referral-link {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #525252;
+      margin: 0;
+    }
+
+    .referral-copy {
+      font-size: 0.75rem;
+      color: #525252;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-align: left;
+      width: fit-content;
+    }
+
+    .referral-copy.copied {
+      color: #f5f5f5;
     }
 
     .shop {
@@ -341,6 +389,21 @@ try {
   </style>
 
   <script>
+    const copyBtn = document.getElementById("referral-copy-btn");
+    const linkEl = document.getElementById("referral-link");
+    if (copyBtn && linkEl) {
+      copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(linkEl.textContent?.trim() ?? "").then(() => {
+          copyBtn.textContent = "copied!";
+          copyBtn.classList.add("copied");
+          setTimeout(() => {
+            copyBtn.textContent = "copy link";
+            copyBtn.classList.remove("copied");
+          }, 1500);
+        });
+      });
+    }
+
     const id =
       document.querySelector<HTMLElement>("[data-slack-id]")?.dataset.slackId;
     if (id) {
