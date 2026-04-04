@@ -43,7 +43,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 		return Response.redirect(
 			`${import.meta.env.PUBLIC_BASE_URL}/?error=no_user`,
 		);
-	if (!identity.ysws_eligible)
+	if (!identity.ysws_eligible && !import.meta.env.DEV)
 		return Response.redirect(
 			`${import.meta.env.PUBLIC_BASE_URL}/?error=not_eligible`,
 		);
