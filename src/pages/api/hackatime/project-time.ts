@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { z } from "zod";
+import { z } from "astro/zod";
 import { getProjectById, updateProjectHoursCache } from "../../../lib/airtable";
 import { getSession } from "../../../lib/session";
 
