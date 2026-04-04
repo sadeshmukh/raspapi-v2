@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { upsertUser } from "../../lib/airtable";
 import { setSessionCookie } from "../../lib/session";
 
-export const GET: APIRoute = async ({ url, request }) => {
+export const GET: APIRoute = async ({ url, cookies }) => {
 	const code = url.searchParams.get("code");
 	if (!code)
 		return Response.redirect(
@@ -48,9 +48,9 @@ export const GET: APIRoute = async ({ url, request }) => {
 			`${import.meta.env.PUBLIC_BASE_URL}/?error=not_eligible`,
 		);
 
-	const cookieHeader = request.headers.get("cookie") ?? "";
-	const refMatch = cookieHeader.match(/(?:^|;\s*)ref=(\d+)/);
-	const referer = refMatch ? parseInt(refMatch[1], 10) : undefined;
+	const refCookie = cookies.get("ref");
+	const referer = refCookie ? parseInt(refCookie.value, 10) : undefined;
+	cookies.delete("ref", { path: "/" });
 
 	await upsertUser(slack_id, referer);
 
@@ -58,14 +58,9 @@ export const GET: APIRoute = async ({ url, request }) => {
 		{ slack_id },
 		import.meta.env.SESSION_SECRET,
 	);
-	const clearRef = `ref=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 
 	return new Response(null, {
 		status: 302,
-		headers: [
-			["Location", "/me"],
-			["Set-Cookie", sessionCookie],
-			["Set-Cookie", clearRef],
-		],
+		headers: { Location: "/me", "Set-Cookie": sessionCookie },
 	});
 };
