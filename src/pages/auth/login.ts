@@ -13,7 +13,7 @@ export const GET: APIRoute = async ({ url }) => {
 		Location: `https://auth.hackclub.com/oauth/authorize?${params}`,
 	};
 
-	if (ref && /^\d+$/.test(ref)) {
+	if (ref && /^\d{1,7}$/.test(ref) && parseInt(ref, 10) > 0) {
 		headers["Set-Cookie"] =
 			`ref=${ref}; Path=/; HttpOnly; SameSite=Lax; Max-Age=600`;
 	}
