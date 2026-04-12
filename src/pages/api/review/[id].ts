@@ -82,7 +82,9 @@ function formatBuffBreakdown(buffs: string[]): string {
 	for (const buff of buffs) {
 		if (buff.startsWith("endpoints:")) {
 			const count = parseInt(buff.split(":")[1], 10);
-			formatted.push(`Additional endpoints (${count}) +${(count * 0.03).toFixed(2)}`);
+			formatted.push(
+				`Additional endpoints (${count}) +${(count * 0.03).toFixed(2)}`,
+			);
 		} else if (buffLabels[buff]) {
 			formatted.push(buffLabels[buff]);
 		}
@@ -94,7 +96,10 @@ function formatBuffBreakdown(buffs: string[]): string {
 export const POST: APIRoute = async ({ cookies, params, request }) => {
 	const id = params.id;
 	if (!id) {
-		return Response.json({ error: "No submission ID specified" }, { status: 404 });
+		return Response.json(
+			{ error: "No submission ID specified" },
+			{ status: 404 },
+		);
 	}
 
 	const session = await getSession(cookies, import.meta.env.SESSION_SECRET);
@@ -163,7 +168,9 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 	// Post to Slack
 	const reviewerName = await getSlackUserName(session.slack_id);
 	const submitterName = await getSlackUserName(submission.user_slack_id);
-	const payout = Math.round(submission.hours_at_submission * 6 * payload.multiplier);
+	const payout = Math.round(
+		submission.hours_at_submission * 6 * payload.multiplier,
+	);
 	const buffBreakdown = formatBuffBreakdown(payload.buffs ?? []);
 
 	const slackMessage = `[REVIEW] ${reviewerName} -> ${payload.action}

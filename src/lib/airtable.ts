@@ -342,7 +342,9 @@ export interface SubmissionWithProject extends SubmissionRecord {
 	created_at: string;
 }
 
-export async function getPendingSubmissions(): Promise<SubmissionWithProject[]> {
+export async function getPendingSubmissions(): Promise<
+	SubmissionWithProject[]
+> {
 	const submissions: SubmissionWithProject[] = [];
 	const filter = encodeURIComponent(`{review_status}="submitted"`);
 	let offset: string | undefined;
