@@ -108,13 +108,24 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
                         <span class="hackatime-time">…</span>
                       )}
                     </div>
-                    <button
-                      class="btn-ship"
-                      disabled
-                      title="Submission coming soon"
-                    >
-                      ship
-                    </button>
+                    {!project.has_pending_submission && project.hackatime_project && project.name && project.description && project.image_url && project.project_url && project.repo_url ? (
+                      <button
+                        class="btn-ship btn-ship--ready"
+                        data-id={project.id}
+                      >
+                        ship
+                      </button>
+                    ) : project.has_pending_submission ? (
+                      <span class="ship-status">submitted for review</span>
+                    ) : (
+                      <button
+                        class="btn-ship"
+                        disabled
+                        title="Fill all fields and link hackatime to ship"
+                      >
+                        ship
+                      </button>
+                    )}
                   </div>
                   {project.image_url && (
                     <img
@@ -409,6 +420,28 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
       color: #404040;
       padding: 0.3rem 0.85rem;
       cursor: not-allowed;
+    }
+
+    .btn-ship--ready {
+      border-color: #c41e3a;
+      color: #c41e3a;
+      cursor: pointer;
+    }
+
+    .btn-ship--ready:hover {
+      background: #c41e3a;
+      color: #f5f5f5;
+    }
+
+    .btn-ship--ready:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .ship-status {
+      font-size: 0.75rem;
+      color: #525252;
+      font-style: italic;
     }
 
     .btn-delete {
@@ -997,5 +1030,56 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
     function escAttr(s: string) {
       return s.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
+
+    // Ship button handling
+    document
+      .querySelectorAll<HTMLButtonElement>(".btn-ship--ready")
+      .forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.id;
+          if (!id) return;
+
+          if (!confirm("Submit this project for review? This will snapshot your current Hackatime hours.")) {
+            return;
+          }
+
+          btn.disabled = true;
+          btn.textContent = "submitting...";
+
+          try {
+            const res = await fetch(`/api/projects/${id}/submit`, {
+              method: "POST",
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+              alert(data.error ?? "Failed to submit");
+              btn.disabled = false;
+              btn.textContent = "ship";
+              return;
+            }
+
+            // Replace button with status text
+            const statusSpan = document.createElement("span");
+            statusSpan.className = "ship-status";
+            statusSpan.textContent = "submitted for review";
+            btn.replaceWith(statusSpan);
+
+            // Add pending badge to header
+            const card = document.querySelector<HTMLElement>(`.project-card[data-id="${id}"]`);
+            const titleRow = card?.querySelector(".project-title-row");
+            if (titleRow && !titleRow.querySelector(".badge")) {
+              const badge = document.createElement("span");
+              badge.className = "badge";
+              badge.textContent = "pending";
+              titleRow.appendChild(badge);
+            }
+          } catch {
+            alert("Network error");
+            btn.disabled = false;
+            btn.textContent = "ship";
+          }
+        });
+      });
   </script>
 </Layout>
