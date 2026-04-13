@@ -22,3 +22,5 @@ Before submitting your project, make sure you meet the following requirements:
 - Your code should be in a public git repo with a (hand-written, please) README explaining what it is.
 - You should have around 5–7 hours tracked on Hackatime.
 - Make something cool and have fun!
+
+Reviewers award a multiplier based on what your API implements - see the [Buffs & Multipliers](/guides/buffs) guide for details on how payouts are calculated.

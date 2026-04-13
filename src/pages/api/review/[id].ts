@@ -32,8 +32,8 @@ function formatBuffBreakdown(buffs: string[]): string {
 		rate_limiting: "Rate limiting +0.10",
 		pagination: "Pagination +0.05",
 		error_handling: "Error handling +0.05",
-		cool_project: "Cool project x1.2",
-		exceptional_quality: "Exceptional quality x1.1",
+		cool_project: "Cool project x1.3",
+		exceptional_quality: "Exceptional quality x1.2",
 	};
 
 	const formatted: string[] = [];
@@ -150,7 +150,7 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 	}
 
 	const payout = Math.round(
-		submission.hours_at_submission * 6 * payload.multiplier,
+		submission.hours_at_submission * 4 * payload.multiplier,
 	);
 	const buffBreakdown = formatBuffBreakdown(buffs);
 
@@ -164,7 +164,7 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 	if (logChannel) {
 		const logMessage = `[REVIEW] <@${session.slack_id}> -> ${payload.action}
 Submitter: <@${submission.user_slack_id}>
-Project: ${submission.project_name}${submission.project_url ? ` — ${submission.project_url}` : ""}
+Project: ${submission.project_name}${submission.project_url ? ` - ${submission.project_url}` : ""}
 Repo: ${submission.repo_url || "none"}
 Hours: ${submission.hours_at_submission.toFixed(2)}h
 Multiplier: ${payload.multiplier.toFixed(2)} (${buffBreakdown})
