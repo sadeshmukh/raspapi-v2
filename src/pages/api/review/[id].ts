@@ -9,7 +9,6 @@ import {
 	createLedgerEntry,
 	linkSubmissionPayoutTransaction,
 } from "../../../lib/airtable";
-
 import { getSession } from "../../../lib/session";
 
 const ReviewSchema = z.object({
@@ -19,45 +18,11 @@ const ReviewSchema = z.object({
 	buffs: z.array(z.string()).optional(),
 });
 
-async function postToSlack(message: string): Promise<boolean> {
-	const token = import.meta.env.SLACK_BOT_TOKEN;
-	const channel = import.meta.env.SLACK_LOGS_CHANNEL;
+import { App } from "slack.ts";
 
-	if (!token || !channel) {
-		console.error("[review] Missing SLACK_BOT_TOKEN or SLACK_LOGS_CHANNEL");
-		return false;
-	}
-
-	try {
-		const res = await fetch("https://slack.com/api/chat.postMessage", {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				channel,
-				text: message,
-			}),
-		});
-
-		if (!res.ok) {
-			console.error("[review] Slack API error:", res.status);
-			return false;
-		}
-
-		const data = await res.json();
-		if (!data.ok) {
-			console.error("[review] Slack error:", data.error);
-			return false;
-		}
-
-		return true;
-	} catch (err) {
-		console.error("[review] Failed to post to Slack:", err);
-		return false;
-	}
-}
+const app = new App({
+	token: import.meta.env.SLACK_BOT_TOKEN,
+});
 
 function formatBuffBreakdown(buffs: string[]): string {
 	const buffLabels: Record<string, string> = {
@@ -134,10 +99,13 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 		return Response.json({ error: "Invalid body" }, { status: 400 });
 	}
 
+	const buffs = payload.buffs ?? [];
+
 	const updated = await updateSubmissionReview(id, {
 		review_status: payload.action,
 		multiplier: payload.multiplier,
 		reviewer_notes: payload.notes ?? "",
+		buffs: buffs.join(","),
 	});
 
 	if (!updated) {
@@ -184,7 +152,7 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 	const payout = Math.round(
 		submission.hours_at_submission * 6 * payload.multiplier,
 	);
-	const buffBreakdown = formatBuffBreakdown(payload.buffs ?? []);
+	const buffBreakdown = formatBuffBreakdown(buffs);
 
 	const airtableLink =
 		import.meta.env.AIRTABLE_BASE_ID &&
@@ -192,17 +160,39 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 			? `https://airtable.com/${import.meta.env.AIRTABLE_BASE_ID}/${import.meta.env.AIRTABLE_SUBMISSIONS_TABLE_ID}/${id}`
 			: id;
 
-	const slackMessage = `[REVIEW] <@${session.slack_id}> -> ${payload.action}
+	const logChannel = import.meta.env.SLACK_LOGS_CHANNEL;
+	if (logChannel) {
+		const logMessage = `[REVIEW] <@${session.slack_id}> -> ${payload.action}
 Submitter: <@${submission.user_slack_id}>
 Project: ${submission.project_name}${submission.project_url ? ` — ${submission.project_url}` : ""}
 Repo: ${submission.repo_url || "none"}
 Hours: ${submission.hours_at_submission.toFixed(2)}h
 Multiplier: ${payload.multiplier.toFixed(2)} (${buffBreakdown})
-Payout: ${payout} raspberries
+Payout: ${payout} :raspberry_pi:
 Notes: ${payload.notes || "none"}
 Airtable: ${airtableLink}`;
 
-	await postToSlack(slackMessage);
+		await app.channel(logChannel).send({ text: logMessage });
+	}
+
+	const dmLines =
+		payload.action === "approved"
+			? [
+					`Your project *${submission.project_name}* has been approved! :yayayayayay:`,
+					`*Hours:* ${submission.hours_at_submission.toFixed(2)}h`,
+					`*Multiplier:* ${payload.multiplier.toFixed(2)} (${buffBreakdown})`,
+					`*Payout:* ${payout} :raspberry_pi:`,
+					payload.notes ? `*Reviewer notes:* ${payload.notes}` : null,
+				]
+			: [
+					`Your project *${submission.project_name}* was not approved this time.`,
+					payload.notes ? `*Reviewer notes:* ${payload.notes}` : null,
+					`Feel free to make changes and resubmit.`,
+				];
+
+	await app
+		.channel(submission.user_slack_id)
+		.send({ text: dmLines.filter(Boolean).join("\n") });
 
 	return Response.json({ success: true });
 };

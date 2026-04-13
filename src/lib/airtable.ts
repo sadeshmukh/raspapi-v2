@@ -425,6 +425,7 @@ export async function updateSubmissionReview(
 		review_status: "approved" | "rejected";
 		multiplier: number;
 		reviewer_notes: string;
+		buffs: string;
 	},
 ): Promise<boolean> {
 	const res = await fetch(`${BASE()}/submissions/${id}`, {
@@ -435,6 +436,7 @@ export async function updateSubmissionReview(
 				review_status: data.review_status,
 				multiplier: data.multiplier,
 				reviewer_notes: data.reviewer_notes,
+				buffs: data.buffs,
 			},
 		}),
 	});

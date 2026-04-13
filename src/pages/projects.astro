@@ -108,7 +108,13 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
                         <span class="hackatime-time">…</span>
                       )}
                     </div>
-                    {!project.has_pending_submission && project.hackatime_project && project.name && project.description && project.image_url && project.project_url && project.repo_url ? (
+                    {!project.has_pending_submission &&
+                    project.hackatime_project &&
+                    project.name &&
+                    project.description &&
+                    project.image_url &&
+                    project.project_url &&
+                    project.repo_url ? (
                       <button
                         class="btn-ship btn-ship--ready"
                         data-id={project.id}
@@ -1039,7 +1045,11 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
           const id = btn.dataset.id;
           if (!id) return;
 
-          if (!confirm("Submit this project for review? This will snapshot your current Hackatime hours.")) {
+          if (
+            !confirm(
+              "Submit this project for review? You cannot make changes until it's reviewed.",
+            )
+          ) {
             return;
           }
 
@@ -1066,7 +1076,9 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
             btn.replaceWith(statusSpan);
 
             // Add pending badge to header
-            const card = document.querySelector<HTMLElement>(`.project-card[data-id="${id}"]`);
+            const card = document.querySelector<HTMLElement>(
+              `.project-card[data-id="${id}"]`,
+            );
             const titleRow = card?.querySelector(".project-title-row");
             if (titleRow && !titleRow.querySelector(".badge")) {
               const badge = document.createElement("span");
