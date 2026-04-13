@@ -5,7 +5,11 @@ import {
 	updateSubmissionReview,
 	getProjectById,
 	updateProjectApprovedHours,
+	getUserBySlackId,
+	createLedgerEntry,
+	linkSubmissionPayoutTransaction,
 } from "../../../lib/airtable";
+
 import { getSession } from "../../../lib/session";
 
 const ReviewSchema = z.object({
@@ -53,17 +57,6 @@ async function postToSlack(message: string): Promise<boolean> {
 		console.error("[review] Failed to post to Slack:", err);
 		return false;
 	}
-}
-
-async function getSlackUserName(slackId: string): Promise<string> {
-	try {
-		const res = await fetch(`https://cachet.dunkirk.sh/users/${slackId}`);
-		if (res.ok) {
-			const data = await res.json();
-			return data.displayName || slackId;
-		}
-	} catch {}
-	return slackId;
 }
 
 function formatBuffBreakdown(buffs: string[]): string {
@@ -141,7 +134,6 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 		return Response.json({ error: "Invalid body" }, { status: 400 });
 	}
 
-	// Update submission in Airtable
 	const updated = await updateSubmissionReview(id, {
 		review_status: payload.action,
 		multiplier: payload.multiplier,
@@ -155,31 +147,60 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 		);
 	}
 
-	// If approved, update project's approved_hours
 	if (payload.action === "approved" && submission.project_id) {
-		const project = await getProjectById(submission.project_id);
+		const [project, submitter] = await Promise.all([
+			getProjectById(submission.project_id),
+			getUserBySlackId(submission.user_slack_id),
+		]);
+
 		if (project) {
 			const newApprovedHours =
 				(project.approved_hours ?? 0) + submission.hours_at_submission;
 			await updateProjectApprovedHours(submission.project_id, newApprovedHours);
 		}
+
+		if (submitter) {
+			const ledgerId = await createLedgerEntry(
+				submitter.id,
+				id,
+				`Project: ${submission.project_name}`,
+			);
+			if (ledgerId) {
+				await linkSubmissionPayoutTransaction(id, ledgerId);
+			} else {
+				console.error(
+					"[review] Failed to create ledger entry for submission",
+					id,
+				);
+			}
+		} else {
+			console.error(
+				"[review] Could not find user for slack_id",
+				submission.user_slack_id,
+			);
+		}
 	}
 
-	// Post to Slack
-	const reviewerName = await getSlackUserName(session.slack_id);
-	const submitterName = await getSlackUserName(submission.user_slack_id);
 	const payout = Math.round(
 		submission.hours_at_submission * 6 * payload.multiplier,
 	);
 	const buffBreakdown = formatBuffBreakdown(payload.buffs ?? []);
 
-	const slackMessage = `[REVIEW] ${reviewerName} -> ${payload.action}
-Submitter: ${submitterName}
-Project: ${submission.project_url || submission.project_name}
+	const airtableLink =
+		import.meta.env.AIRTABLE_BASE_ID &&
+		import.meta.env.AIRTABLE_SUBMISSIONS_TABLE_ID
+			? `https://airtable.com/${import.meta.env.AIRTABLE_BASE_ID}/${import.meta.env.AIRTABLE_SUBMISSIONS_TABLE_ID}/${id}`
+			: id;
+
+	const slackMessage = `[REVIEW] <@${session.slack_id}> -> ${payload.action}
+Submitter: <@${submission.user_slack_id}>
+Project: ${submission.project_name}${submission.project_url ? ` — ${submission.project_url}` : ""}
+Repo: ${submission.repo_url || "none"}
 Hours: ${submission.hours_at_submission.toFixed(2)}h
 Multiplier: ${payload.multiplier.toFixed(2)} (${buffBreakdown})
 Payout: ${payout} raspberries
-Notes: ${payload.notes || "none"}`;
+Notes: ${payload.notes || "none"}
+Airtable: ${airtableLink}`;
 
 	await postToSlack(slackMessage);
 

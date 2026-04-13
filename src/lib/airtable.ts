@@ -452,3 +452,41 @@ export async function updateProjectApprovedHours(
 	});
 	return res.ok;
 }
+
+export async function createLedgerEntry(
+	userAirtableId: string,
+	submissionId: string,
+	reason: string,
+): Promise<string | null> {
+	const res = await fetch(`${BASE()}/ledger`, {
+		method: "POST",
+		headers: HEADERS(),
+		body: JSON.stringify({
+			records: [
+				{
+					fields: {
+						user: [userAirtableId],
+						type: "project_payout",
+						reason,
+						payout_submission: [submissionId],
+					},
+				},
+			],
+		}),
+	});
+	if (!res.ok) return null;
+	const data = await res.json();
+	return data.records?.[0]?.id ?? null;
+}
+
+export async function linkSubmissionPayoutTransaction(
+	submissionId: string,
+	ledgerRecordId: string,
+): Promise<boolean> {
+	const res = await fetch(`${BASE()}/submissions/${submissionId}`, {
+		method: "PATCH",
+		headers: HEADERS(),
+		body: JSON.stringify({ fields: { payout_transaction: [ledgerRecordId] } }),
+	});
+	return res.ok;
+}
