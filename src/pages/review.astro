@@ -3,8 +3,8 @@
 import Layout from "../layouts/Layout.astro";
 import { getPendingSubmissions } from "../lib/airtable";
 import {
-	createProject as createFraudProject,
-	listProjects,
+  createProject as createFraudProject,
+  listProjects,
 } from "../lib/fraud";
 import { getSession } from "../lib/session";
 
@@ -12,38 +12,38 @@ const session = await getSession(Astro.cookies, import.meta.env.SESSION_SECRET);
 if (!session) return Astro.redirect("/auth/login");
 
 const adminIds = (import.meta.env.ADMIN_IDS ?? "")
-	.split(",")
-	.map((s: string) => s.trim())
-	.filter(Boolean);
+  .split(",")
+  .map((s: string) => s.trim())
+  .filter(Boolean);
 if (!adminIds.includes(session.slack_id)) return Astro.redirect("/me");
 
 const [submissions, fraudData] = await Promise.all([
-	getPendingSubmissions(),
-	listProjects().catch(() => ({ projects: [] })),
+  getPendingSubmissions(),
+  listProjects().catch(() => ({ projects: [] })),
 ]);
 
 const fraudByOrgId = new Map(
-	(fraudData.projects ?? []).map((p) => [p.organizerPlatformId, p]),
+  (fraudData.projects ?? []).map((p) => [p.organizerPlatformId, p]),
 );
 
 const missingInFraud = submissions.filter((sub) => !fraudByOrgId.has(sub.id));
 if (missingInFraud.length > 0) {
-	await Promise.allSettled(
-		missingInFraud.map((sub) =>
-			createFraudProject(
-				sub.project_name,
-				sub.repo_url ?? "",
-				sub.project_url ?? "",
-				sub.user_slack_id,
-				sub.hackatime_project ? [sub.hackatime_project] : [],
-				sub.id,
-			).catch((e) => console.error("[review] fraud createProject failed:", e)),
-		),
-	);
-	const updatedFraud = await listProjects().catch(() => ({ projects: [] }));
-	for (const p of updatedFraud.projects ?? []) {
-		fraudByOrgId.set(p.organizerPlatformId, p);
-	}
+  await Promise.allSettled(
+    missingInFraud.map((sub) =>
+      createFraudProject(
+        sub.project_name,
+        sub.repo_url ?? "",
+        sub.project_url ?? "",
+        sub.user_slack_id,
+        sub.hackatime_project ? [sub.hackatime_project] : [],
+        sub.id,
+      ).catch((e) => console.error("[review] fraud createProject failed:", e)),
+    ),
+  );
+  const updatedFraud = await listProjects().catch(() => ({ projects: [] }));
+  for (const p of updatedFraud.projects ?? []) {
+    fraudByOrgId.set(p.organizerPlatformId, p);
+  }
 }
 
 const approvedSubmissions = submissions;
@@ -79,6 +79,7 @@ const approvedSubmissions = submissions;
                   data-hours={sub.hours_at_submission}
                   data-user-slack-id={sub.user_slack_id}
                   data-project-name={sub.project_name}
+                  data-hackatime-project={sub.hackatime_project ?? ""}
                   data-project-url={sub.project_url ?? ""}
                   data-repo-url={sub.repo_url ?? ""}
                 >
@@ -180,6 +181,13 @@ const approvedSubmissions = submissions;
                 rel="noopener noreferrer"
                 class="link hidden">repo</a
               >
+            </div>
+            <div id="unified-info" class="unified-info hidden">
+              <span class="unified-label">UNIFIED</span>
+              <div id="unified-loading" class="unified-loading">
+                looking up...
+              </div>
+              <div id="unified-result" class="hidden"></div>
             </div>
           </div>
 
@@ -321,11 +329,15 @@ const approvedSubmissions = submissions;
           </div>
 
           <div class="notes-section">
-            <label for="override-justification">Override Hours Justification <span class="required-mark">*</span></label>
+            <label for="override-justification"
+              >Override Hours Justification <span class="required-mark">*</span
+              ></label
+            >
             <textarea
               id="override-justification"
               rows="3"
-              placeholder="Required — explain your reasoning for this review..."></textarea>
+              placeholder="Required — explain your reasoning for this review..."
+            ></textarea>
           </div>
         </div>
 
@@ -863,6 +875,67 @@ const approvedSubmissions = submissions;
       border-color: #404040;
     }
 
+    .unified-info {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: #111;
+      border: 1px solid #262626;
+    }
+
+    .unified-label {
+      display: block;
+      font-size: 0.65rem;
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #525252;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .unified-loading {
+      font-size: 0.8rem;
+      color: #525252;
+    }
+
+    .unified-none {
+      font-size: 0.8rem;
+      color: #525252;
+      font-style: italic;
+    }
+
+    .unified-submissions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .unified-submission {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      padding: 0.5rem;
+      border: 1px solid #1f1f1f;
+      background: #0d0d0d;
+    }
+
+    .unified-ysws {
+      font-size: 0.8rem;
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      color: #f5f5f5;
+    }
+
+    .unified-meta {
+      font-size: 0.75rem;
+      color: #737373;
+    }
+
+    .unified-hours {
+      color: #c41e3a;
+      font-weight: 700;
+    }
+
     .required-mark {
       color: #c41e3a;
     }
@@ -916,6 +989,9 @@ const approvedSubmissions = submissions;
     }
   </style>
 
+  <script is:inline define:vars={{ reviewerSlackId: session.slack_id }}>
+    window.__reviewerSlackId = reviewerSlackId;
+  </script>
   <script>
     document.querySelectorAll<HTMLElement>(".submitter").forEach(async (el) => {
       const slackId = el.dataset.slackId;
@@ -952,7 +1028,24 @@ const approvedSubmissions = submissions;
 
     let currentSubmissionId: string | null = null;
     let currentHours = 0;
+    let currentHackatimeProject = "";
+    let currentUserSlackId = "";
+    let currentUnifiedData: any = null;
+    let currentProjectDates: {
+      firstDate: string | null;
+      lastDate: string | null;
+    } | null = null;
     let endpointsCount = 0;
+    let reviewerDisplayName: string = (window as any).__reviewerSlackId ?? "";
+
+    fetch(
+      `https://cachet.dunkirk.sh/users/${(window as any).__reviewerSlackId}`,
+    )
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.displayName) reviewerDisplayName = d.displayName;
+      })
+      .catch(() => {});
 
     function closeModal() {
       modal.classList.add("hidden");
@@ -972,6 +1065,10 @@ const approvedSubmissions = submissions;
 
           currentSubmissionId = card.dataset.id!;
           currentHours = parseFloat(card.dataset.hours || "0");
+          currentHackatimeProject = card.dataset.hackatimeProject || "";
+          currentUserSlackId = card.dataset.userSlackId || "";
+          currentProjectDates = null;
+          currentUnifiedData = null;
 
           const projectName = card.dataset.projectName || "";
           const projectUrl = card.dataset.projectUrl || "";
@@ -1018,6 +1115,66 @@ const approvedSubmissions = submissions;
             })
             .catch(() => {});
 
+          const unifiedInfo = document.getElementById("unified-info")!;
+          const unifiedLoading = document.getElementById("unified-loading")!;
+          const unifiedResult = document.getElementById("unified-result")!;
+
+          if (currentHackatimeProject && currentUserSlackId) {
+            fetch(
+              `/api/hackatime/project-dates?slackId=${encodeURIComponent(currentUserSlackId)}&project=${encodeURIComponent(currentHackatimeProject)}`,
+            )
+              .then((r) => (r.ok ? r.json() : null))
+              .then((d) => {
+                currentProjectDates = d;
+                resetBuffs();
+              })
+              .catch(() => {});
+          }
+
+          if (repoUrl) {
+            unifiedInfo.classList.remove("hidden");
+            unifiedLoading.classList.remove("hidden");
+            unifiedResult.classList.add("hidden");
+            unifiedResult.innerHTML = "";
+
+            fetch(`/api/unified-lookup?codeUrl=${encodeURIComponent(repoUrl)}`)
+              .then((r) => (r.ok ? r.json() : null))
+              .then((d) => {
+                currentUnifiedData = d;
+                unifiedLoading.classList.add("hidden");
+                unifiedResult.classList.remove("hidden");
+
+                const subs = d?.submissions ?? [];
+                if (subs.length === 0) {
+                  unifiedResult.innerHTML =
+                    '<span class="unified-none">No prior submissions in Unified</span>';
+                } else {
+                  const items = subs
+                    .map((s: any) => {
+                      const approvedDate = s.approvedAt
+                        ? new Date(s.approvedAt).toLocaleDateString()
+                        : "not yet";
+                      return `<div class="unified-submission">
+                        <span class="unified-ysws">${s.yswsName ?? s.ysws}</span>
+                        <span class="unified-meta"><span class="unified-hours">${s.hoursShipped}h</span> shipped &mdash; approved ${approvedDate} &mdash; status: ${s.shipStatus}</span>
+                      </div>`;
+                    })
+                    .join("");
+                  unifiedResult.innerHTML = `<div class="unified-submissions">${items}</div>`;
+                }
+                resetBuffs();
+              })
+              .catch(() => {
+                currentUnifiedData = null;
+                unifiedLoading.classList.add("hidden");
+                unifiedResult.classList.remove("hidden");
+                unifiedResult.innerHTML =
+                  '<span class="unified-none">Lookup failed</span>';
+              });
+          } else {
+            unifiedInfo.classList.add("hidden");
+          }
+
           resetBuffs();
           modal.classList.remove("hidden");
         });
@@ -1038,7 +1195,30 @@ const approvedSubmissions = submissions;
       document.getElementById("endpoints-count")!.textContent = "0";
       notesInput.value = "";
       overrideHoursInput.value = currentHours.toFixed(2);
-      overrideJustificationInput.value = "";
+      const today = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      const reviewerSlackIdVal = (window as any).__reviewerSlackId ?? "";
+      const subs = currentUnifiedData?.submissions ?? [];
+      let unifiedLine: string;
+      if (subs.length === 0) {
+        unifiedLine = `As of ${today} this is the first submission of this code URL into Unified.`;
+      } else {
+        const lines = subs.map((s: any) => {
+          const approvedDate = s.approvedAt
+            ? new Date(s.approvedAt).toLocaleDateString()
+            : "not yet approved";
+          return `  - ${s.yswsName ?? s.ysws}: ${s.hoursShipped}h shipped, approved ${approvedDate}`;
+        });
+        unifiedLine = `This code URL has ${subs.length} prior submission(s) in Unified:\n${lines.join("\n")}`;
+      }
+      const datesLine =
+        currentProjectDates?.firstDate && currentProjectDates?.lastDate
+          ? ` First tracked: ${currentProjectDates.firstDate}. Last tracked: ${currentProjectDates.lastDate}.`
+          : "";
+      overrideJustificationInput.value = `The user tracked ${currentHours.toFixed(2)} hours on the project through Hackatime on project ${currentHackatimeProject}.${datesLine} ${unifiedLine}\n\nreviewed by ${reviewerDisplayName} (${reviewerSlackIdVal})`;
       updateMultiplier();
     }
 
@@ -1098,7 +1278,9 @@ const approvedSubmissions = submissions;
         finalM.toFixed(2);
 
       const parsedOverride = parseFloat(overrideHoursInput.value);
-      const effectiveHours = !isNaN(parsedOverride) ? parsedOverride : currentHours;
+      const effectiveHours = !isNaN(parsedOverride)
+        ? parsedOverride
+        : currentHours;
       const payout = Math.round(effectiveHours * 4 * finalM);
       document.getElementById("payout-preview")!.textContent =
         payout.toString();
