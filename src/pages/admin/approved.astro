@@ -1,0 +1,341 @@
+---
+// biome-ignore lint/correctness/noUnusedImports: shut up astro
+import Layout from "../../layouts/Layout.astro";
+import { getApprovedSubmissions } from "../../lib/airtable";
+import { getSession } from "../../lib/session";
+
+const session = await getSession(Astro.cookies, import.meta.env.SESSION_SECRET);
+if (!session) return Astro.redirect("/auth/login");
+
+const adminIds = (import.meta.env.ADMIN_IDS ?? "")
+  .split(",")
+  .map((s: string) => s.trim())
+  .filter(Boolean);
+if (!adminIds.includes(session.slack_id)) return Astro.redirect("/me");
+
+const submissions = await getApprovedSubmissions();
+---
+
+<Layout>
+  <main class="page">
+    <header class="topbar">
+      <span class="label">APPROVED SUBMISSIONS</span>
+      <div class="actions">
+        <span class="count">{submissions.length} approved</span>
+        <a href="/review" class="back">review queue</a>
+        <a href="/me" class="back">dashboard</a>
+      </div>
+    </header>
+
+    <section class="content">
+      {
+        submissions.length === 0 ? (
+          <p class="empty">No approved submissions</p>
+        ) : (
+          <div class="submissions-list">
+            {submissions.map((sub) => (
+              <div
+                class="submission-card"
+                data-id={sub.id}
+                data-project-name={sub.project_name}
+                data-user-slack-id={sub.user_slack_id}
+              >
+                <div class="submission-header">
+                  <div class="submission-info">
+                    <h2 class="project-name">{sub.project_name}</h2>
+                    <p class="submitter" data-slack-id={sub.user_slack_id}>
+                      by <span class="submitter-name">{sub.user_slack_id}</span>
+                    </p>
+                  </div>
+                  <div class="submission-meta">
+                    <span class="hours">
+                      {(sub.approved_hours > 0
+                        ? sub.approved_hours
+                        : sub.hours_at_submission
+                      ).toFixed(2)}h
+                    </span>
+                    <span class="payout">{sub.payout} 🍓</span>
+                    <span class="date">
+                      {new Date(sub.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="submission-details">
+                  {sub.project_description && (
+                    <p class="description">{sub.project_description}</p>
+                  )}
+                  <div class="links">
+                    {sub.project_url && (
+                      <a
+                        href={sub.project_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="link"
+                      >
+                        project
+                      </a>
+                    )}
+                    {sub.repo_url && (
+                      <a
+                        href={sub.repo_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="link"
+                      >
+                        repo
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <button class="btn-repush" data-id={sub.id}>
+                  re-push to unified
+                </button>
+              </div>
+            ))}
+          </div>
+        )
+      }
+    </section>
+  </main>
+
+  <style>
+    .page {
+      min-height: 100vh;
+      padding: 2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-left: 7rem;
+    }
+
+    .label {
+      font-family: "Syne", sans-serif;
+      font-weight: 800;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      color: #c41e3a;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .count {
+      font-size: 0.8rem;
+      color: #525252;
+    }
+
+    .back {
+      font-size: 0.75rem;
+      color: #525252;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .empty {
+      font-size: 0.875rem;
+      color: #525252;
+      margin: 0;
+    }
+
+    .submissions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border: 1px solid #262626;
+    }
+
+    .submission-card {
+      padding: 1.25rem;
+      border-bottom: 1px solid #262626;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .submission-card:last-child {
+      border-bottom: none;
+    }
+
+    .submission-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .submission-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .project-name {
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #f5f5f5;
+      margin: 0;
+    }
+
+    .submitter {
+      font-size: 0.8rem;
+      color: #525252;
+      margin: 0;
+    }
+
+    .submitter-name {
+      color: #737373;
+    }
+
+    .submission-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.25rem;
+    }
+
+    .hours {
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #c41e3a;
+    }
+
+    .payout {
+      font-size: 0.8rem;
+      color: #22c55e;
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+    }
+
+    .date {
+      font-size: 0.75rem;
+      color: #525252;
+    }
+
+    .submission-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .description {
+      font-size: 0.85rem;
+      color: #737373;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .link {
+      font-size: 0.75rem;
+      color: #525252;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .link:hover {
+      color: #f5f5f5;
+    }
+
+    .btn-repush {
+      align-self: flex-start;
+      font-size: 0.75rem;
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      background: none;
+      border: 1px solid #525252;
+      color: #525252;
+      padding: 0.3rem 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-repush:hover {
+      border-color: #f5f5f5;
+      color: #f5f5f5;
+    }
+
+    .btn-repush:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-repush.success {
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+
+    .btn-repush.error {
+      border-color: #c41e3a;
+      color: #c41e3a;
+    }
+  </style>
+
+  <script>
+    document.querySelectorAll<HTMLElement>(".submitter").forEach(async (el) => {
+      const slackId = el.dataset.slackId;
+      if (!slackId) return;
+      try {
+        const res = await fetch(`https://cachet.dunkirk.sh/users/${slackId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const nameEl = el.querySelector(".submitter-name");
+        if (nameEl && data.displayName) {
+          nameEl.textContent = data.displayName;
+        }
+      } catch {}
+    });
+
+    document
+      .querySelectorAll<HTMLButtonElement>(".btn-repush")
+      .forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.id;
+          if (!id) return;
+
+          btn.disabled = true;
+          btn.textContent = "pushing...";
+
+          try {
+            const res = await fetch(`/api/approved/${id}/repush`, {
+              method: "POST",
+            });
+            const data = await res.json();
+            if (res.ok) {
+              btn.classList.add("success");
+              btn.textContent = "pushed!";
+            } else {
+              btn.classList.add("error");
+              btn.textContent = data.error ?? "failed";
+              btn.disabled = false;
+            }
+          } catch {
+            btn.classList.add("error");
+            btn.textContent = "network error";
+            btn.disabled = false;
+          }
+        });
+      });
+  </script>
+</Layout>

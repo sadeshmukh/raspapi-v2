@@ -62,6 +62,7 @@ export interface SubmissionRecord {
 	id: string;
 	project_id: string;
 	hours_at_submission: number;
+	approved_hours: number;
 	review_status: "submitted" | "rejected" | "approved";
 	reviewer_notes: string;
 	override_hours_justification: string;
@@ -368,6 +369,7 @@ export async function createSubmission(
 		id: r.id,
 		project_id: r.fields.project[0],
 		hours_at_submission: r.fields.hours_at_submission ?? 0,
+		approved_hours: r.fields.approved_hours ?? 0,
 		review_status: r.fields.review_status,
 		reviewer_notes: r.fields.reviewer_notes ?? "",
 		override_hours_justification: r.fields.override_hours_justification ?? "",
@@ -413,7 +415,57 @@ export async function getPendingSubmissions(): Promise<
 				id: r.id,
 				project_id: projectId ?? "",
 				hours_at_submission: r.fields.hours_at_submission ?? 0,
+				approved_hours: r.fields.approved_hours ?? 0,
 				review_status: r.fields.review_status ?? "submitted",
+				reviewer_notes: r.fields.reviewer_notes ?? "",
+				override_hours_justification:
+					r.fields.override_hours_justification ?? "",
+				multiplier: r.fields.multiplier ?? 1,
+				payout: r.fields.payout ?? 0,
+				payout_transaction_id: r.fields.payout_transaction?.[0] ?? undefined,
+				project_name: project?.name ?? "",
+				project_description: project?.description ?? "",
+				project_url: project?.project_url,
+				repo_url: project?.repo_url,
+				image_url: project?.image_url,
+				hackatime_project: project?.hackatime_project,
+				user_slack_id: project?.user_slack_id ?? "",
+				created_at: r.createdTime ?? "",
+			});
+		}
+		offset = data.offset;
+	} while (offset);
+
+	return submissions;
+}
+
+export async function getApprovedSubmissions(): Promise<
+	SubmissionWithProject[]
+> {
+	const submissions: SubmissionWithProject[] = [];
+	const filter = encodeURIComponent(`{review_status}="approved"`);
+	let offset: string | undefined;
+
+	do {
+		const url = new URL(
+			`${BASE()}/submissions?filterByFormula=${filter}&sort%5B0%5D%5Bfield%5D=id&sort%5B0%5D%5Bdirection%5D=desc`,
+		);
+		if (offset) url.searchParams.set("offset", offset);
+		const res = await fetch(url.toString(), { headers: HEADERS() });
+		if (!res.ok) break;
+		const data = await res.json();
+		for (const r of data.records ?? []) {
+			const projectId = r.fields.project?.[0];
+			let project: ProjectRecord | null = null;
+			if (projectId) {
+				project = await getProjectById(projectId);
+			}
+			submissions.push({
+				id: r.id,
+				project_id: projectId ?? "",
+				hours_at_submission: r.fields.hours_at_submission ?? 0,
+				approved_hours: r.fields.approved_hours ?? 0,
+				review_status: r.fields.review_status ?? "approved",
 				reviewer_notes: r.fields.reviewer_notes ?? "",
 				override_hours_justification:
 					r.fields.override_hours_justification ?? "",
@@ -453,6 +505,7 @@ export async function getSubmissionById(
 		id: r.id,
 		project_id: projectId ?? "",
 		hours_at_submission: r.fields.hours_at_submission ?? 0,
+		approved_hours: r.fields.approved_hours ?? 0,
 		review_status: r.fields.review_status ?? "submitted",
 		reviewer_notes: r.fields.reviewer_notes ?? "",
 		override_hours_justification: r.fields.override_hours_justification ?? "",
