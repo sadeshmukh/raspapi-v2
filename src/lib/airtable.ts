@@ -11,6 +11,7 @@ export interface UserRecord {
 	id: string;
 	slack_id: string;
 	hackatime_token?: string;
+	hackatime_id?: string;
 	balance: number;
 	row_number?: number;
 	referer?: number;
@@ -79,6 +80,7 @@ function parseUserRecord(r: {
 		id: r.id,
 		slack_id: r.fields.slack_id as string,
 		hackatime_token: (r.fields.hackatime_token as string) ?? undefined,
+		hackatime_id: (r.fields.hackatime_id as string) ?? undefined,
 		balance: (r.fields.balance as number) ?? 0,
 		row_number: (r.fields.row_number as number) ?? undefined,
 		referer: (r.fields.referer as number) ?? undefined,
@@ -161,13 +163,30 @@ export async function getUserBySlackId(
 export async function updateHackatimeToken(
 	slack_id: string,
 	token: string,
+	hackatime_id?: string,
+): Promise<boolean> {
+	const user = await getUserBySlackId(slack_id);
+	if (!user) return false;
+	const fields: Record<string, string> = { hackatime_token: token };
+	if (hackatime_id) fields.hackatime_id = hackatime_id;
+	const res = await fetch(`${BASE()}/users/${user.id}`, {
+		method: "PATCH",
+		headers: HEADERS(),
+		body: JSON.stringify({ fields }),
+	});
+	return res.ok;
+}
+
+export async function updateHackatimeId(
+	slack_id: string,
+	hackatime_id: string,
 ): Promise<boolean> {
 	const user = await getUserBySlackId(slack_id);
 	if (!user) return false;
 	const res = await fetch(`${BASE()}/users/${user.id}`, {
 		method: "PATCH",
 		headers: HEADERS(),
-		body: JSON.stringify({ fields: { hackatime_token: token } }),
+		body: JSON.stringify({ fields: { hackatime_id } }),
 	});
 	return res.ok;
 }

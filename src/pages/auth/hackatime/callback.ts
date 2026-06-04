@@ -65,7 +65,18 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 	if (!access_token)
 		return Response.redirect(`${base}/me?error=hackatime_token_failed`);
 
-	const ok = await updateHackatimeToken(slack_id, access_token);
+	let hackatimeId: string | undefined;
+	try {
+		const meRes = await fetch("https://hackatime.hackclub.com/api/v1/authenticated/me", {
+			headers: { Authorization: `Bearer ${access_token}` },
+		});
+		if (meRes.ok) {
+			const meData = await meRes.json();
+			if (meData.id) hackatimeId = String(meData.id);
+		}
+	} catch {}
+
+	const ok = await updateHackatimeToken(slack_id, access_token, hackatimeId);
 	if (!ok) return Response.redirect(`${base}/me?error=hackatime_save_failed`);
 
 	return Response.redirect(`${base}/me?hackatime=connected`);

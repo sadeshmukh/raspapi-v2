@@ -56,6 +56,14 @@ const [projects, ledger, orders] = await Promise.all([
             >
               Slack profile
             </a>
+            <a
+              href={`https://joe.fraud.hackclub.com/profile/${slack_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="slack-link"
+            >
+              Joe
+            </a>
           </div>
         </div>
         <div class="balance-display">
@@ -98,6 +106,18 @@ const [projects, ledger, orders] = await Promise.all([
         <div class="detail">
           <span class="detail-label">Airtable ID</span>
           <span class="detail-value mono">{user.id}</span>
+        </div>
+        <div class="detail">
+          <span class="detail-label">Hackatime ID</span>
+          <span class="detail-value mono hackatime-id-row">
+            <span id="hackatime-id-display">{user.hackatime_id ?? "—"}</span>
+            <button id="hackatime-id-edit-btn" class="inline-edit-btn" title="Edit">edit</button>
+          </span>
+          <form id="hackatime-id-form" class="inline-edit-form hidden">
+            <input id="hackatime-id-input" type="text" value={user.hackatime_id ?? ""} placeholder="Enter hackatime ID" class="inline-edit-input" />
+            <button type="submit" class="inline-edit-btn">save</button>
+            <button type="button" id="hackatime-id-cancel" class="inline-edit-btn">cancel</button>
+          </form>
         </div>
       </div>
     </section>
@@ -320,6 +340,45 @@ const [projects, ledger, orders] = await Promise.all([
       color: #737373;
     }
 
+    .hackatime-id-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .inline-edit-btn {
+      font-size: 0.65rem;
+      color: #c41e3a;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .inline-edit-form {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    .inline-edit-form.hidden {
+      display: none;
+    }
+
+    .inline-edit-input {
+      font-size: 0.75rem;
+      font-family: monospace;
+      background: #0a0a0a;
+      border: 1px solid #262626;
+      color: #f5f5f5;
+      padding: 0.25rem 0.5rem;
+      width: 14rem;
+    }
+
     .pii {
       color: transparent;
       background: #1a1a1a;
@@ -532,5 +591,43 @@ const [projects, ledger, orders] = await Promise.all([
         }
       } catch {}
     })();
+
+    const display = document.getElementById("hackatime-id-display");
+    const editBtn = document.getElementById("hackatime-id-edit-btn");
+    const form = document.getElementById("hackatime-id-form");
+    const input = document.getElementById("hackatime-id-input");
+    const cancelBtn = document.getElementById("hackatime-id-cancel");
+
+    editBtn.addEventListener("click", () => {
+      display.style.display = "none";
+      editBtn.style.display = "none";
+      form.classList.remove("hidden");
+      input.focus();
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      form.classList.add("hidden");
+      display.style.display = "";
+      editBtn.style.display = "";
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const val = input.value.trim();
+      if (!val) return;
+      const res = await fetch(`/api/admin/users/${slack_id}/hackatime-id`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hackatime_id: val }),
+      });
+      if (res.ok) {
+        display.textContent = val;
+        form.classList.add("hidden");
+        display.style.display = "";
+        editBtn.style.display = "";
+      } else {
+        alert("Failed to save hackatime ID");
+      }
+    });
   </script>
 </Layout>
