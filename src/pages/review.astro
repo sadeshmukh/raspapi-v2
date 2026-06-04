@@ -381,12 +381,12 @@ const approvedSubmissions = submissions;
 
     .count {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
     }
 
     .back {
       font-size: 0.75rem;
-      color: #525252;
+      color: #8a8a8a;
       text-decoration: underline;
       text-underline-offset: 3px;
     }
@@ -397,7 +397,7 @@ const approvedSubmissions = submissions;
       font-weight: 700;
       background: none;
       border: none;
-      color: #525252;
+      color: #8a8a8a;
       cursor: pointer;
       text-decoration: underline;
       text-underline-offset: 3px;
@@ -410,7 +410,7 @@ const approvedSubmissions = submissions;
 
     .review-slack-id {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
       margin: 0 0 0.25rem 0;
       font-family: monospace;
     }
@@ -423,7 +423,7 @@ const approvedSubmissions = submissions;
 
     .empty {
       font-size: 0.875rem;
-      color: #525252;
+      color: #737373;
       margin: 0;
     }
 
@@ -469,7 +469,7 @@ const approvedSubmissions = submissions;
 
     .submitter {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
       margin: 0;
     }
 
@@ -551,7 +551,7 @@ const approvedSubmissions = submissions;
 
     .date {
       font-size: 0.75rem;
-      color: #525252;
+      color: #737373;
     }
 
     .submission-details {
@@ -574,7 +574,7 @@ const approvedSubmissions = submissions;
 
     .link {
       font-size: 0.75rem;
-      color: #525252;
+      color: #8a8a8a;
       text-decoration: underline;
       text-underline-offset: 3px;
     }
@@ -651,7 +651,7 @@ const approvedSubmissions = submissions;
     .modal-close {
       background: none;
       border: none;
-      color: #525252;
+      color: #8a8a8a;
       font-size: 1.5rem;
       cursor: pointer;
       line-height: 1;
@@ -698,7 +698,7 @@ const approvedSubmissions = submissions;
 
     .buff-hint {
       font-size: 0.75rem;
-      color: #525252;
+      color: #737373;
       margin: 0 0 1rem 0;
     }
 
@@ -712,7 +712,7 @@ const approvedSubmissions = submissions;
       font-family: "Syne", sans-serif;
       font-weight: 700;
       letter-spacing: 0.08em;
-      color: #525252;
+      color: #737373;
       text-transform: uppercase;
       margin-bottom: 0.5rem;
     }
@@ -782,7 +782,7 @@ const approvedSubmissions = submissions;
 
     .multiplier-breakdown {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
       margin-bottom: 0.75rem;
       line-height: 1.6;
     }
@@ -827,7 +827,7 @@ const approvedSubmissions = submissions;
 
     .payout-unit {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
     }
 
     .notes-section label {
@@ -836,7 +836,7 @@ const approvedSubmissions = submissions;
       font-family: "Syne", sans-serif;
       font-weight: 700;
       letter-spacing: 0.08em;
-      color: #525252;
+      color: #737373;
       text-transform: uppercase;
       margin-bottom: 0.5rem;
     }
@@ -888,19 +888,19 @@ const approvedSubmissions = submissions;
       font-family: "Syne", sans-serif;
       font-weight: 700;
       letter-spacing: 0.08em;
-      color: #525252;
+      color: #737373;
       text-transform: uppercase;
       margin-bottom: 0.5rem;
     }
 
     .unified-loading {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
     }
 
     .unified-none {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
       font-style: italic;
     }
 
@@ -986,6 +986,40 @@ const approvedSubmissions = submissions;
 
     .hidden {
       display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 1.5rem 1rem;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding-left: 0;
+        padding-top: 3.5rem;
+      }
+
+      .actions {
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+      }
+
+      .submission-header {
+        flex-direction: column;
+      }
+
+      .submission-meta {
+        align-items: flex-start;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .modal-content {
+        max-width: calc(100vw - 2rem);
+      }
     }
   </style>
 

@@ -132,12 +132,12 @@ const submissions = await getApprovedSubmissions();
 
     .count {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
     }
 
     .back {
       font-size: 0.75rem;
-      color: #525252;
+      color: #8a8a8a;
       text-decoration: underline;
       text-underline-offset: 3px;
     }
@@ -150,7 +150,7 @@ const submissions = await getApprovedSubmissions();
 
     .empty {
       font-size: 0.875rem;
-      color: #525252;
+      color: #737373;
       margin: 0;
     }
 
@@ -196,7 +196,7 @@ const submissions = await getApprovedSubmissions();
 
     .submitter {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
       margin: 0;
     }
 
@@ -227,7 +227,7 @@ const submissions = await getApprovedSubmissions();
 
     .date {
       font-size: 0.75rem;
-      color: #525252;
+      color: #737373;
     }
 
     .submission-details {
@@ -250,7 +250,7 @@ const submissions = await getApprovedSubmissions();
 
     .link {
       font-size: 0.75rem;
-      color: #525252;
+      color: #8a8a8a;
       text-decoration: underline;
       text-underline-offset: 3px;
     }
@@ -265,8 +265,8 @@ const submissions = await getApprovedSubmissions();
       font-family: "Syne", sans-serif;
       font-weight: 700;
       background: none;
-      border: 1px solid #525252;
-      color: #525252;
+      border: 1px solid #8a8a8a;
+      color: #8a8a8a;
       padding: 0.3rem 0.85rem;
       cursor: pointer;
     }
@@ -289,6 +289,36 @@ const submissions = await getApprovedSubmissions();
     .btn-repush.error {
       border-color: #c41e3a;
       color: #c41e3a;
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 1.5rem 1rem;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding-left: 0;
+        padding-top: 3.5rem;
+      }
+
+      .actions {
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+      }
+
+      .submission-header {
+        flex-direction: column;
+      }
+
+      .submission-meta {
+        align-items: flex-start;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
     }
   </style>
 

@@ -116,12 +116,12 @@ const orders = await getAllShopOrders();
 
     .count {
       font-size: 0.8rem;
-      color: #525252;
+      color: #737373;
     }
 
     .back {
       font-size: 0.75rem;
-      color: #525252;
+      color: #8a8a8a;
       text-decoration: underline;
       text-underline-offset: 3px;
     }
@@ -138,7 +138,7 @@ const orders = await getAllShopOrders();
       font-weight: 700;
       background: none;
       border: 1px solid #262626;
-      color: #525252;
+      color: #8a8a8a;
       padding: 0.3rem 0.75rem;
       cursor: pointer;
     }
@@ -161,7 +161,7 @@ const orders = await getAllShopOrders();
 
     .empty {
       font-size: 0.875rem;
-      color: #525252;
+      color: #737373;
       margin: 0;
     }
 
@@ -178,7 +178,7 @@ const orders = await getAllShopOrders();
       font-weight: 700;
       font-size: 0.65rem;
       letter-spacing: 0.08em;
-      color: #525252;
+      color: #737373;
       text-transform: uppercase;
     }
 
@@ -235,7 +235,7 @@ const orders = await getAllShopOrders();
     }
 
     .col-date {
-      color: #525252;
+      color: #737373;
       font-size: 0.8rem;
     }
 
@@ -271,7 +271,7 @@ const orders = await getAllShopOrders();
       font-weight: 700;
       background: none;
       border: 1px solid #262626;
-      color: #525252;
+      color: #8a8a8a;
       padding: 0.25rem 0.6rem;
       cursor: pointer;
       white-space: nowrap;
@@ -307,6 +307,44 @@ const orders = await getAllShopOrders();
     .btn-toggle:disabled {
       opacity: 0.4;
       cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 1.5rem 1rem;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding-left: 0;
+        padding-top: 3.5rem;
+      }
+
+      .actions {
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+      }
+
+      .filters {
+        padding-left: 0;
+      }
+
+      .table-header {
+        display: none;
+      }
+
+      .order-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 1rem;
+      }
+
+      .col-action {
+        flex-wrap: wrap;
+      }
     }
   </style>
 

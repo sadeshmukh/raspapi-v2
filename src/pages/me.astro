@@ -165,19 +165,19 @@ const shopItems = await getShopItems();
 
     .logout {
       font-size: 0.75rem;
-      color: #525252;
+      color: #8a8a8a;
       text-decoration: underline;
       text-underline-offset: 3px;
     }
 
     .hackatime-status {
       font-size: 0.75rem;
-      color: #525252;
+      color: #737373;
     }
 
     .referral-copy {
       font-size: 0.75rem;
-      color: #525252;
+      color: #8a8a8a;
       background: none;
       border: none;
       padding: 0;
@@ -214,18 +214,18 @@ const shopItems = await getShopItems();
       font-family: "Syne", sans-serif;
       font-weight: 700;
       font-size: 0.75rem;
-      color: #525252;
+      color: #737373;
     }
 
     .empty {
       font-size: 0.875rem;
-      color: #525252;
+      color: #737373;
       margin: 0;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
       gap: 1px;
       border: 1px solid #262626;
     }
@@ -336,6 +336,25 @@ const shopItems = await getShopItems();
       cursor: not-allowed;
       border-color: #525252;
       color: #525252;
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 1.5rem 1rem;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding-left: 0;
+        padding-top: 3.5rem;
+      }
+
+      .actions {
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+      }
     }
   </style>
 
