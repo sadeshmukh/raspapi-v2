@@ -67,9 +67,12 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 
 	let hackatimeId: string | undefined;
 	try {
-		const meRes = await fetch("https://hackatime.hackclub.com/api/v1/authenticated/me", {
-			headers: { Authorization: `Bearer ${access_token}` },
-		});
+		const meRes = await fetch(
+			"https://hackatime.hackclub.com/api/v1/authenticated/me",
+			{
+				headers: { Authorization: `Bearer ${access_token}` },
+			},
+		);
 		if (meRes.ok) {
 			const meData = await meRes.json();
 			if (meData.id) hackatimeId = String(meData.id);

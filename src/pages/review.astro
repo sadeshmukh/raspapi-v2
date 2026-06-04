@@ -47,7 +47,9 @@ if (missingInFraud.length > 0) {
 }
 
 const uniqueSlackIds = [...new Set(submissions.map((s) => s.user_slack_id))];
-const users = await Promise.all(uniqueSlackIds.map((id) => getUserBySlackId(id)));
+const users = await Promise.all(
+	uniqueSlackIds.map((id) => getUserBySlackId(id)),
+);
 const hackatimeIdBySlackId = new Map<string, string>();
 for (const u of users) {
 	if (u?.hackatime_id) hackatimeIdBySlackId.set(u.slack_id, u.hackatime_id);
