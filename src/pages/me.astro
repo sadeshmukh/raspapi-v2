@@ -15,7 +15,12 @@ const adminIds = (import.meta.env.ADMIN_IDS ?? "")
 	.split(",")
 	.map((s: string) => s.trim())
 	.filter(Boolean);
+const reviewerIds = (import.meta.env.REVIEWER_IDS ?? "")
+	.split(",")
+	.map((s: string) => s.trim())
+	.filter(Boolean);
 const isAdmin = adminIds.includes(session.slack_id);
+const isReviewer = reviewerIds.includes(session.slack_id);
 
 const shopItems = await getShopItems();
 ---
@@ -35,11 +40,15 @@ const shopItems = await getShopItems();
       <div class="actions">
         <a href="/projects" class="logout"> my projects </a>
         {
+          (isAdmin || isReviewer) && (
+            <a href="/review" class="logout">
+              review
+            </a>
+          )
+        }
+        {
           isAdmin && (
             <>
-              <a href="/review" class="logout">
-                review
-              </a>
               <a href="/admin/fulfillment" class="logout">
                 fulfillment
               </a>

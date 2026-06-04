@@ -71,8 +71,12 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 		.split(",")
 		.map((s: string) => s.trim())
 		.filter(Boolean);
+	const reviewerIds = (import.meta.env.REVIEWER_IDS ?? "")
+		.split(",")
+		.map((s: string) => s.trim())
+		.filter(Boolean);
 
-	if (!adminIds.includes(session.slack_id)) {
+	if (!adminIds.includes(session.slack_id) && !reviewerIds.includes(session.slack_id)) {
 		return Response.json({ error: "Not authorized" }, { status: 403 });
 	}
 
