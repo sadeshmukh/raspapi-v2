@@ -19,7 +19,11 @@ const reviewerIds = (import.meta.env.REVIEWER_IDS ?? "")
 	.split(",")
 	.map((s: string) => s.trim())
 	.filter(Boolean);
-if (!adminIds.includes(session.slack_id) && !reviewerIds.includes(session.slack_id)) return Astro.redirect("/me");
+if (
+	!adminIds.includes(session.slack_id) &&
+	!reviewerIds.includes(session.slack_id)
+)
+	return Astro.redirect("/me");
 
 const [submissions, fraudData] = await Promise.all([
 	getPendingSubmissions(),

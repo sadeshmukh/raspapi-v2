@@ -44,9 +44,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 			`${import.meta.env.PUBLIC_BASE_URL}/?error=no_user`,
 		);
 	if (!identity.ysws_eligible && !import.meta.env.DEV)
-		return Response.redirect(
-			`${import.meta.env.PUBLIC_BASE_URL}/?error=not_eligible`,
-		);
+		return Response.redirect(`${import.meta.env.PUBLIC_BASE_URL}/verify`);
 
 	const refCookie = cookies.get("ref");
 	const referer = refCookie ? parseInt(refCookie.value, 10) : undefined;
