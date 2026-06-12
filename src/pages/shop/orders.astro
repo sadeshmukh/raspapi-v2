@@ -1,0 +1,239 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getShopOrdersByUserId, getUserBySlackId } from "../../lib/airtable";
+import { getSession } from "../../lib/session";
+
+const session = await getSession(Astro.cookies, import.meta.env.SESSION_SECRET);
+if (!session) return Astro.redirect("/auth/login");
+
+const userRecord = await getUserBySlackId(session.slack_id);
+if (!userRecord) return Astro.redirect("/me");
+
+const orders = await getShopOrdersByUserId(userRecord.id);
+---
+
+<Layout>
+  <main class="page">
+    <header class="topbar">
+      <span class="label">SHOP ORDERS</span>
+      <div class="actions">
+        <span class="count">{orders.length} orders</span>
+        <a href="/me" class="back">dashboard</a>
+      </div>
+    </header>
+
+    <section class="content">
+      {
+        orders.length === 0 ? (
+          <div class="empty-state">
+            <p class="empty-title">No shop orders yet</p>
+            <p class="empty-copy">Your purchases will show up here after checkout.</p>
+            <a href="/me" class="shop-link">go to shop</a>
+          </div>
+        ) : (
+          <div class="orders-table">
+            <div class="table-header">
+              <span class="col-item">Item</span>
+              <span class="col-date">Date</span>
+              <span class="col-status">Status</span>
+            </div>
+            {orders.map((order) => (
+              <div class="order-row">
+                <span class="col-item">{order.item_name || "Unknown item"}</span>
+                <span class="col-date">
+                  {order.created_at
+                    ? new Date(order.created_at).toLocaleDateString()
+                    : "unknown"}
+                </span>
+                <span class={`col-status status-badge status-badge--${order.status}`}>
+                  {order.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )
+      }
+    </section>
+  </main>
+
+  <style>
+    .page {
+      min-height: 100vh;
+      padding: 2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-left: 7rem;
+    }
+
+    .label {
+      font-family: "Syne", sans-serif;
+      font-weight: 800;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      color: #c41e3a;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .count {
+      font-size: 0.8rem;
+      color: #737373;
+      white-space: nowrap;
+    }
+
+    .back,
+    .shop-link {
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: #8a8a8a;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .back:hover,
+    .shop-link:hover {
+      color: #f5f5f5;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .empty-state {
+      border: 1px solid #262626;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.65rem;
+    }
+
+    .empty-title {
+      font-family: "Syne", sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #f5f5f5;
+      margin: 0;
+    }
+
+    .empty-copy {
+      font-size: 0.875rem;
+      color: #737373;
+      margin: 0;
+    }
+
+    .orders-table {
+      border: 1px solid #262626;
+    }
+
+    .table-header,
+    .order-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 0.45fr 0.4fr;
+      column-gap: 1rem;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+    }
+
+    .table-header {
+      border-bottom: 1px solid #262626;
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: #737373;
+      text-transform: uppercase;
+    }
+
+    .order-row {
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 0.85rem;
+      color: #a3a3a3;
+    }
+
+    .order-row:last-child {
+      border-bottom: none;
+    }
+
+    .col-item {
+      color: #f5f5f5;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .col-date {
+      color: #737373;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.65rem;
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-badge--submitted {
+      color: #f59e0b;
+      border-color: #f59e0b;
+    }
+
+    .status-badge--fulfilled {
+      color: #22c55e;
+      border-color: #22c55e;
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 1.5rem 1rem;
+      }
+
+      .topbar {
+        padding-left: 0;
+        padding-top: 3.5rem;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .actions {
+        gap: 1rem;
+      }
+
+      .table-header {
+        display: none;
+      }
+
+      .order-row {
+        grid-template-columns: 1fr;
+        row-gap: 0.5rem;
+      }
+
+      .col-date {
+        white-space: normal;
+      }
+    }
+  </style>
+</Layout>

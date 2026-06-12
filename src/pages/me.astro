@@ -41,6 +41,7 @@ const regularItems = shopItems.filter((item) => !item.priority);
       </div>
       <nav class="primary-actions" aria-label="dashboard navigation">
         <a href="/projects" class="nav-action">my projects</a>
+        <a href="/shop/orders" class="nav-action">my orders</a>
         {
           (isAdmin || isReviewer) && (
             <a href="/review" class="nav-action">
