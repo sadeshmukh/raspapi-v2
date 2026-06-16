@@ -27,6 +27,11 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
       </div>
     </header>
 
+    <div class="notice" role="status">
+      ⚠ We're currently having issues with shipping. If your ship doesn't go
+      through, hang tight, we're working on it.
+    </div>
+
     <section class="projects-section">
       <div class="section-header">
         <span class="section-label">PROJECTS</span>
@@ -358,6 +363,15 @@ const projects = await getAllProjectsBySlackId(session.slack_id);
       color: #8a8a8a;
       text-decoration: underline;
       text-underline-offset: 3px;
+    }
+
+    .notice {
+      font-size: 0.825rem;
+      line-height: 1.5;
+      color: #f0c14b;
+      background: #f0c14b14;
+      border: 1px solid #f0c14b44;
+      padding: 0.75rem 1rem;
     }
 
     .projects-section {
