@@ -27,6 +27,7 @@ export interface UserRecord {
 	address_state?: string;
 	address_postal_code?: string;
 	address_country?: string;
+	phone_number?: string;
 }
 
 export interface IdentityFields {
@@ -42,6 +43,7 @@ export interface IdentityFields {
 	address_state?: string;
 	address_postal_code?: string;
 	address_country?: string;
+	phone_number?: string;
 }
 
 export interface ProjectRecord {
@@ -96,6 +98,7 @@ function parseUserRecord(r: {
 		address_state: (r.fields.address_state as string) ?? undefined,
 		address_postal_code: (r.fields.address_postal_code as string) ?? undefined,
 		address_country: (r.fields.address_country as string) ?? undefined,
+		phone_number: (r.fields.phone_number as string) ?? undefined,
 	};
 }
 

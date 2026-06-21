@@ -69,6 +69,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 			address_state: primaryAddress?.state ?? undefined,
 			address_postal_code: primaryAddress?.postal_code ?? undefined,
 			address_country: primaryAddress?.country ?? undefined,
+			phone_number: primaryAddress?.phone_number ?? undefined,
 		},
 		referer,
 	);

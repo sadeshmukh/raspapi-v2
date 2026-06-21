@@ -91,6 +91,12 @@ const [projects, ledger, orders] = await Promise.all([
             <span class="detail-value pii">{user.birthday}</span>
           </div>
         )}
+        {user.phone_number && (
+          <div class="detail">
+            <span class="detail-label">Phone</span>
+            <span class="detail-value pii">{user.phone_number}</span>
+          </div>
+        )}
         {user.address_line_1 && (
           <div class="detail">
             <span class="detail-label">Address</span>
