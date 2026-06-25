@@ -1,9 +1,9 @@
 display_information:
-  name: RaspAPI
+  name: RaspAPI (dev)
 
 features:
   bot_user:
-    display_name: RaspAPI
+    display_name: RaspAPI (dev)
     always_online: false
 
 oauth_config:
